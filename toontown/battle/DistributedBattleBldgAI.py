@@ -16,11 +16,12 @@ from direct.showbase import PythonUtil
 class DistributedBattleBldgAI(DistributedBattleBaseAI.DistributedBattleBaseAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedBattleBldgAI')
 
-    def __init__(self, air, zoneId, roundCallback = None, finishCallback = None, maxSuits = 4, bossBattle = 0):
+    def __init__(self, air, zoneId, roundCallback=None, finishCallback=None, maxSuits=4, bossBattle=0):
         DistributedBattleBaseAI.DistributedBattleBaseAI.__init__(self, air, zoneId, finishCallback, maxSuits, bossBattle)
         self.streetBattle = 0
         self.roundCallback = roundCallback
-        self.fsm.addState(State.State('BuildingReward', self.enterBuildingReward, self.exitBuildingReward, ['Resume']))
+        self.fsm.addState(State.State('BuildingReward', self.enterBuildingReward, self.exitBuildingReward, [
+         'Resume']))
         playMovieState = self.fsm.getStateNamed('PlayMovie')
         playMovieState.addTransition('BuildingReward')
         self.elevatorPos = Point3(0, -30, 0)
@@ -44,12 +45,14 @@ class DistributedBattleBldgAI(DistributedBattleBaseAI.DistributedBattleBaseAI):
         if self.ignoreResponses == 1:
             self.notify.debug('faceOffDone() - ignoring toon: %d' % toonId)
             return
-        elif self.fsm.getCurrentState().getName() != 'FaceOff':
-            self.notify.warning('faceOffDone() - in state: %s' % self.fsm.getCurrentState().getName())
-            return
-        elif self.toons.count(toonId) == 0:
-            self.notify.warning('faceOffDone() - toon: %d not in toon list' % toonId)
-            return
+        else:
+            if self.fsm.getCurrentState().getName() != 'FaceOff':
+                self.notify.warning('faceOffDone() - in state: %s' % self.fsm.getCurrentState().getName())
+                return
+            else:
+                if self.toons.count(toonId) == 0:
+                    self.notify.warning('faceOffDone() - toon: %d not in toon list' % toonId)
+                    return
         self.responses[toonId] += 1
         self.notify.debug('toon: %d done facing off' % toonId)
         if not self.ignoreFaceOffDone:
@@ -107,7 +110,7 @@ class DistributedBattleBldgAI(DistributedBattleBaseAI.DistributedBattleBaseAI):
     def __goToResumeState(self, task):
         self.b_setState('Resume')
 
-    def resume(self, currentFloor = 0, topFloor = 0):
+    def resume(self, currentFloor=0, topFloor=0):
         if len(self.suits) == 0:
             self.d_setMembers()
             self.suitsKilledPerFloor.append(self.suitsKilledThisBattle)
@@ -140,10 +143,10 @@ class DistributedBattleBldgAI(DistributedBattleBaseAI.DistributedBattleBaseAI):
         self.resumeDeadSuits = []
         self.resumeLastActiveSuitDied = 0
 
-    def enterReservesJoining(self, ts = 0):
+    def enterReservesJoining(self, ts=0):
         return None
 
-    def exitReservesJoining(self, ts = 0):
+    def exitReservesJoining(self, ts=0):
         return None
 
     def enterReward(self):

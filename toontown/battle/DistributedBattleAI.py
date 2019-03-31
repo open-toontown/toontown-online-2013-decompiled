@@ -11,7 +11,7 @@ import random
 class DistributedBattleAI(DistributedBattleBaseAI.DistributedBattleBaseAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedBattleAI')
 
-    def __init__(self, air, battleMgr, pos, suit, toonId, zoneId, finishCallback = None, maxSuits = 4, tutorialFlag = 0, levelFlag = 0, interactivePropTrackBonus = -1):
+    def __init__(self, air, battleMgr, pos, suit, toonId, zoneId, finishCallback=None, maxSuits=4, tutorialFlag=0, levelFlag=0, interactivePropTrackBonus=-1):
         DistributedBattleBaseAI.DistributedBattleBaseAI.__init__(self, air, zoneId, finishCallback, maxSuits=maxSuits, tutorialFlag=tutorialFlag, interactivePropTrackBonus=interactivePropTrackBonus)
         self.battleMgr = battleMgr
         self.pos = pos
@@ -40,12 +40,14 @@ class DistributedBattleAI(DistributedBattleBaseAI.DistributedBattleBaseAI):
         if self.ignoreFaceOffDone == 1:
             self.notify.debug('faceOffDone() - ignoring toon: %d' % toonId)
             return
-        elif self.fsm.getCurrentState().getName() != 'FaceOff':
-            self.notify.warning('faceOffDone() - in state: %s' % self.fsm.getCurrentState().getName())
-            return
-        elif self.toons.count(toonId) == 0:
-            self.notify.warning('faceOffDone() - toon: %d not in toon list' % toonId)
-            return
+        else:
+            if self.fsm.getCurrentState().getName() != 'FaceOff':
+                self.notify.warning('faceOffDone() - in state: %s' % self.fsm.getCurrentState().getName())
+                return
+            else:
+                if self.toons.count(toonId) == 0:
+                    self.notify.warning('faceOffDone() - toon: %d not in toon list' % toonId)
+                    return
         self.notify.debug('toon: %d done facing off' % toonId)
         self.handleFaceOffDone()
 
@@ -74,9 +76,10 @@ class DistributedBattleAI(DistributedBattleBaseAI.DistributedBattleBaseAI):
         self.activeSuits.append(self.suits[0])
         if len(self.toons) == 0:
             self.b_setState('Resume')
-        elif self.faceOffToon == self.toons[0]:
-            self.activeToons.append(self.toons[0])
-            self.sendEarnedExperience(self.toons[0])
+        else:
+            if self.faceOffToon == self.toons[0]:
+                self.activeToons.append(self.toons[0])
+                self.sendEarnedExperience(self.toons[0])
         self.d_setMembers()
         self.b_setState('WaitForInput')
 
@@ -84,25 +87,26 @@ class DistributedBattleAI(DistributedBattleBaseAI.DistributedBattleBaseAI):
         if len(self.toons) == 0:
             self.d_setMembers()
             self.b_setState('Resume')
-        elif len(self.suits) == 0:
-            for toonId in self.activeToons:
-                toon = self.getToon(toonId)
-                if toon:
-                    self.toonItems[toonId] = self.air.questManager.recoverItems(toon, self.suitsKilled, self.zoneId)
-                    if toonId in self.helpfulToons:
-                        self.toonMerits[toonId] = self.air.promotionMgr.recoverMerits(toon, self.suitsKilled, self.zoneId)
-                    else:
-                        self.notify.debug('toon %d not helpful, skipping merits' % toonId)
-
-            self.d_setMembers()
-            self.d_setBattleExperience()
-            self.b_setState('Reward')
         else:
-            if needUpdate == 1:
+            if len(self.suits) == 0:
+                for toonId in self.activeToons:
+                    toon = self.getToon(toonId)
+                    if toon:
+                        self.toonItems[toonId] = self.air.questManager.recoverItems(toon, self.suitsKilled, self.zoneId)
+                        if toonId in self.helpfulToons:
+                            self.toonMerits[toonId] = self.air.promotionMgr.recoverMerits(toon, self.suitsKilled, self.zoneId)
+                        else:
+                            self.notify.debug('toon %d not helpful, skipping merits' % toonId)
+
                 self.d_setMembers()
-                if len(deadSuits) > 0 and lastActiveSuitDied == 0 or len(deadToons) > 0:
-                    self.needAdjust = 1
-            self.setState('WaitForJoin')
+                self.d_setBattleExperience()
+                self.b_setState('Reward')
+            else:
+                if needUpdate == 1:
+                    self.d_setMembers()
+                    if len(deadSuits) > 0 and lastActiveSuitDied == 0 or len(deadToons) > 0:
+                        self.needAdjust = 1
+                self.setState('WaitForJoin')
 
     def enterReward(self):
         self.notify.debug('enterReward()')

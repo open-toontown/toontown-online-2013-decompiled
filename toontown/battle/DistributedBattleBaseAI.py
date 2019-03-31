@@ -21,7 +21,7 @@ from toontown.toon import NPCToons
 class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBase):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedBattleBaseAI')
 
-    def __init__(self, air, zoneId, finishCallback = None, maxSuits = 4, bossBattle = 0, tutorialFlag = 0, interactivePropTrackBonus = -1):
+    def __init__(self, air, zoneId, finishCallback=None, maxSuits=4, bossBattle=0, tutorialFlag=0, interactivePropTrackBonus=-1):
         DistributedObjectAI.DistributedObjectAI.__init__(self, air)
         self.serialNum = 0
         self.zoneId = zoneId
@@ -75,19 +75,39 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         self.numNPCAttacks = 0
         self.npcAttacks = {}
         self.pets = {}
-        self.fsm = ClassicFSM.ClassicFSM('DistributedBattleAI', [State.State('FaceOff', self.enterFaceOff, self.exitFaceOff, ['WaitForInput', 'Resume']),
-         State.State('WaitForJoin', self.enterWaitForJoin, self.exitWaitForJoin, ['WaitForInput', 'Resume']),
-         State.State('WaitForInput', self.enterWaitForInput, self.exitWaitForInput, ['MakeMovie', 'Resume']),
-         State.State('MakeMovie', self.enterMakeMovie, self.exitMakeMovie, ['PlayMovie', 'Resume']),
-         State.State('PlayMovie', self.enterPlayMovie, self.exitPlayMovie, ['WaitForJoin', 'Reward', 'Resume']),
-         State.State('Reward', self.enterReward, self.exitReward, ['Resume']),
+        self.fsm = ClassicFSM.ClassicFSM('DistributedBattleAI', [
+         State.State('FaceOff', self.enterFaceOff, self.exitFaceOff, [
+          'WaitForInput', 'Resume']),
+         State.State('WaitForJoin', self.enterWaitForJoin, self.exitWaitForJoin, [
+          'WaitForInput', 'Resume']),
+         State.State('WaitForInput', self.enterWaitForInput, self.exitWaitForInput, [
+          'MakeMovie', 'Resume']),
+         State.State('MakeMovie', self.enterMakeMovie, self.exitMakeMovie, [
+          'PlayMovie', 'Resume']),
+         State.State('PlayMovie', self.enterPlayMovie, self.exitPlayMovie, [
+          'WaitForJoin', 'Reward', 'Resume']),
+         State.State('Reward', self.enterReward, self.exitReward, [
+          'Resume']),
          State.State('Resume', self.enterResume, self.exitResume, []),
-         State.State('Off', self.enterOff, self.exitOff, ['FaceOff', 'WaitForJoin'])], 'Off', 'Off')
-        self.joinableFsm = ClassicFSM.ClassicFSM('Joinable', [State.State('Joinable', self.enterJoinable, self.exitJoinable, ['Unjoinable']), State.State('Unjoinable', self.enterUnjoinable, self.exitUnjoinable, ['Joinable'])], 'Unjoinable', 'Unjoinable')
+         State.State('Off', self.enterOff, self.exitOff, [
+          'FaceOff', 'WaitForJoin'])], 'Off', 'Off')
+        self.joinableFsm = ClassicFSM.ClassicFSM('Joinable', [
+         State.State('Joinable', self.enterJoinable, self.exitJoinable, [
+          'Unjoinable']),
+         State.State('Unjoinable', self.enterUnjoinable, self.exitUnjoinable, [
+          'Joinable'])], 'Unjoinable', 'Unjoinable')
         self.joinableFsm.enterInitialState()
-        self.runableFsm = ClassicFSM.ClassicFSM('Runable', [State.State('Runable', self.enterRunable, self.exitRunable, ['Unrunable']), State.State('Unrunable', self.enterUnrunable, self.exitUnrunable, ['Runable'])], 'Unrunable', 'Unrunable')
+        self.runableFsm = ClassicFSM.ClassicFSM('Runable', [
+         State.State('Runable', self.enterRunable, self.exitRunable, [
+          'Unrunable']),
+         State.State('Unrunable', self.enterUnrunable, self.exitUnrunable, [
+          'Runable'])], 'Unrunable', 'Unrunable')
         self.runableFsm.enterInitialState()
-        self.adjustFsm = ClassicFSM.ClassicFSM('Adjust', [State.State('Adjusting', self.enterAdjusting, self.exitAdjusting, ['NotAdjusting', 'Adjusting']), State.State('NotAdjusting', self.enterNotAdjusting, self.exitNotAdjusting, ['Adjusting'])], 'NotAdjusting', 'NotAdjusting')
+        self.adjustFsm = ClassicFSM.ClassicFSM('Adjust', [
+         State.State('Adjusting', self.enterAdjusting, self.exitAdjusting, [
+          'NotAdjusting', 'Adjusting']),
+         State.State('NotAdjusting', self.enterNotAdjusting, self.exitNotAdjusting, [
+          'Adjusting'])], 'NotAdjusting', 'NotAdjusting')
         self.adjustFsm.enterInitialState()
         self.fsm.enterInitialState()
         self.startTime = globalClock.getRealTime()
@@ -151,15 +171,6 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         self.timer.stop()
         self.adjustingTimer.stop()
 
-    def __removeSuit(self, suit):
-        self.notify.debug('__removeSuit(%d)' % suit.doId)
-        self.suits.remove(suit)
-        self.activeSuits.remove(suit)
-        if self.luredSuits.count(suit) == 1:
-            self.luredSuits.remove(suit)
-        self.suitGone = 1
-        del suit.battleTrap
-
     def findSuit(self, id):
         for s in self.suits:
             if s.doId == id:
@@ -194,7 +205,8 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
 
     def getPosition(self):
         self.notify.debug('getPosition() - %s' % self.pos)
-        return [self.pos[0], self.pos[1], self.pos[2]]
+        return [
+         self.pos[0], self.pos[1], self.pos[2]]
 
     def getInitialSuitPos(self):
         p = []
@@ -219,7 +231,8 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         self.fsm.request(state)
 
     def getState(self):
-        return [self.fsm.getCurrentState().getName(), globalClockDelta.getRealNetworkTime()]
+        return [
+         self.fsm.getCurrentState().getName(), globalClockDelta.getRealNetworkTime()]
 
     def d_setMembers(self):
         self.notify.debug('network:setMembers()')
@@ -275,29 +288,9 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         for t in self.runningToons:
             runningToons += str(toons.index(t))
 
-        self.notify.debug('getMembers() - suits: %s joiningSuits: %s pendingSuits: %s activeSuits: %s luredSuits: %s suitTraps: %s toons: %s joiningToons: %s pendingToons: %s activeToons: %s runningToons: %s' % (suits,
-         joiningSuits,
-         pendingSuits,
-         activeSuits,
-         luredSuits,
-         suitTraps,
-         toons,
-         joiningToons,
-         pendingToons,
-         activeToons,
-         runningToons))
-        return [suits,
-         joiningSuits,
-         pendingSuits,
-         activeSuits,
-         luredSuits,
-         suitTraps,
-         toons,
-         joiningToons,
-         pendingToons,
-         activeToons,
-         runningToons,
-         globalClockDelta.getRealNetworkTime()]
+        self.notify.debug('getMembers() - suits: %s joiningSuits: %s pendingSuits: %s activeSuits: %s luredSuits: %s suitTraps: %s toons: %s joiningToons: %s pendingToons: %s activeToons: %s runningToons: %s' % (suits, joiningSuits, pendingSuits, activeSuits, luredSuits, suitTraps, toons, joiningToons, pendingToons, activeToons, runningToons))
+        return [
+         suits, joiningSuits, pendingSuits, activeSuits, luredSuits, suitTraps, toons, joiningToons, pendingToons, activeToons, runningToons, globalClockDelta.getRealNetworkTime()]
 
     def d_adjust(self):
         self.notify.debug('network:adjust()')
@@ -403,10 +396,7 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
             levels.append(ta[TOON_LVL_COL])
             targets.append(ta[TOON_TGT_COL])
 
-        return [ids,
-         tracks,
-         levels,
-         targets]
+        return [ids, tracks, levels, targets]
 
     def d_setBattleExperience(self):
         self.notify.debug('network:setBattleExperience()')
@@ -554,8 +544,7 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
             if toon in self.newToons:
                 for suit in self.activeSuits:
                     if hasattr(suit, 'dna'):
-                        self.suitsEncountered.append({'type': suit.dna.name,
-                         'activeToons': self.activeToons[:]})
+                        self.suitsEncountered.append({'type': suit.dna.name, 'activeToons': self.activeToons[:]})
                     else:
                         self.notify.warning('Suit has no DNA in zone %s: toons involved = %s' % (self.zoneId, self.activeToons))
                         return
@@ -565,8 +554,7 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         for suit in self.activeSuits:
             if suit in self.newSuits:
                 if hasattr(suit, 'dna'):
-                    self.suitsEncountered.append({'type': suit.dna.name,
-                     'activeToons': self.activeToons[:]})
+                    self.suitsEncountered.append({'type': suit.dna.name, 'activeToons': self.activeToons[:]})
                 else:
                     self.notify.warning('Suit has no DNA in zone %s: toons involved = %s' % (self.zoneId, self.activeToons))
                     return
@@ -642,14 +630,26 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
 
     def __removeSuit(self, suit):
         self.notify.debug('__removeSuit(%d)' % suit.doId)
-        self.suits.remove(suit)
-        self.activeSuits.remove(suit)
+        if self.suits.count(suit) != 0:
+            self.suits.remove(suit)
+        else:
+            self.air.writeServerEvent('suspicious', self.activeToons, 'Trying to remove a suit, with suit count at zero. Probably hacker related.')
+        if self.joiningSuits.count(suit) != 0:
+            self.air.writeServerEvent('suspicious', self.activeToons, 'Trying to remove a suit, but joiningSuits is not zero. Probably hacker related.')
+        if self.pendingSuits.count(suit) != 0:
+            self.air.writeServerEvent('suspicious', self.activeToons, 'Trying to remove a suit, but pendingSuits is not zero. Probably hacker related.')
+        if self.adjustingSuits.count(suit) != 0:
+            self.air.writeServerEvent('suspicious', self.activeToons, 'Trying to remove a suit, but adjustingSuits is not zero. Probably hacker related.')
+        if self.activeSuits.count(suit) != 0:
+            self.activeSuits.remove(suit)
+        else:
+            self.air.writeServerEvent('suspicious', self.activeToons, 'Trying to remove a suit, but has no active suits. Probably hacker related.')
         if self.luredSuits.count(suit) == 1:
             self.luredSuits.remove(suit)
         self.suitGone = 1
         del suit.battleTrap
 
-    def __removeToon(self, toonId, userAborted = 0):
+    def __removeToon(self, toonId, userAborted=0):
         self.notify.debug('__removeToon(%d)' % toonId)
         if self.toons.count(toonId) == 0:
             return
@@ -661,11 +661,17 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         if self.pendingToons.count(toonId) == 1:
             self.pendingToons.remove(toonId)
         if self.activeToons.count(toonId) == 1:
+            self.notify.debug('__removeToon(%d) - suitAttacks : %s' % (toonId, self.suitAttacks))
             activeToonIdx = self.activeToons.index(toonId)
             self.notify.debug('removing activeToons[%d], updating suitAttacks SUIT_HP_COL to match' % activeToonIdx)
             for i in range(len(self.suitAttacks)):
                 if activeToonIdx < len(self.suitAttacks[i][SUIT_HP_COL]):
                     del self.suitAttacks[i][SUIT_HP_COL][activeToonIdx]
+                    targetIndex = self.suitAttacks[i][SUIT_TGT_COL]
+                    if targetIndex == activeToonIdx:
+                        self.suitAttacks[i][SUIT_TGT_COL] = -1
+                    elif targetIndex > activeToonIdx:
+                        self.suitAttacks[i][SUIT_TGT_COL] = targetIndex - 1
                 else:
                     self.notify.warning("suitAttacks %d doesn't have an HP column for active toon index %d" % (i, activeToonIdx))
 
@@ -700,17 +706,18 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
                 toon.d_setHp(toon.hp)
                 toon.d_setInventory(toon.inventory.makeNetString())
                 self.air.cogPageManager.toonEncounteredCogs(toon, self.suitsEncountered, self.getTaskZoneId())
-        elif len(self.suits) > 0 and not self.streetBattle:
-            self.notify.info('toon %d aborted non-street battle; clearing inventory and hp.' % toonId)
-            toon = DistributedToonAI.DistributedToonAI(self.air)
-            toon.doId = toonId
-            empty = InventoryBase.InventoryBase(toon)
-            toon.b_setInventory(empty.makeNetString())
-            toon.b_setHp(0)
-            db = DatabaseObject.DatabaseObject(self.air, toonId)
-            db.storeObject(toon, ['setInventory', 'setHp'])
-            self.notify.info('killing mem leak from temporary DistributedToonAI %d' % toonId)
-            toon.deleteDummy()
+        else:
+            if len(self.suits) > 0 and not self.streetBattle:
+                self.notify.info('toon %d aborted non-street battle; clearing inventory and hp.' % toonId)
+                toon = DistributedToonAI.DistributedToonAI(self.air)
+                toon.doId = toonId
+                empty = InventoryBase.InventoryBase(toon)
+                toon.b_setInventory(empty.makeNetString())
+                toon.b_setHp(0)
+                db = DatabaseObject.DatabaseObject(self.air, toonId)
+                db.storeObject(toon, ['setInventory', 'setHp'])
+                self.notify.info('killing mem leak from temporary DistributedToonAI %d' % toonId)
+                toon.deleteDummy()
         return
 
     def getToon(self, toonId):
@@ -850,7 +857,7 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
                 if self.__allAdjustingToonsResponded():
                     self.__adjustDone()
 
-    def __addJoinResponse(self, avId, taskName, toon = 0):
+    def __addJoinResponse(self, avId, taskName, toon=0):
         if toon == 1:
             for jr in self.joinResponses.values():
                 jr[avId] = 0
@@ -897,12 +904,14 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         if self.ignoreAdjustingResponses == 1:
             self.notify.debug('adjustDone() - ignoring toon: %d' % toonId)
             return
-        elif self.adjustFsm.getCurrentState().getName() != 'Adjusting':
-            self.notify.warning('adjustDone() - in state %s' % self.fsm.getCurrentState().getName())
-            return
-        elif self.toons.count(toonId) == 0:
-            self.notify.warning('adjustDone() - toon: %d not in toon list' % toonId)
-            return
+        else:
+            if self.adjustFsm.getCurrentState().getName() != 'Adjusting':
+                self.notify.warning('adjustDone() - in state %s' % self.fsm.getCurrentState().getName())
+                return
+            else:
+                if self.toons.count(toonId) == 0:
+                    self.notify.warning('adjustDone() - toon: %d not in toon list' % toonId)
+                    return
         self.adjustingResponses[toonId] += 1
         self.notify.debug('toon: %d done adjusting' % toonId)
         if self.__allAdjustingToonsResponded():
@@ -913,12 +922,14 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         if self.ignoreResponses == 1:
             self.notify.debug('timeout() - ignoring toon: %d' % toonId)
             return
-        elif self.fsm.getCurrentState().getName() != 'WaitForInput':
-            self.notify.warning('timeout() - in state: %s' % self.fsm.getCurrentState().getName())
-            return
-        elif self.toons.count(toonId) == 0:
-            self.notify.warning('timeout() - toon: %d not in toon list' % toonId)
-            return
+        else:
+            if self.fsm.getCurrentState().getName() != 'WaitForInput':
+                self.notify.warning('timeout() - in state: %s' % self.fsm.getCurrentState().getName())
+                return
+            else:
+                if self.toons.count(toonId) == 0:
+                    self.notify.warning('timeout() - toon: %d not in toon list' % toonId)
+                    return
         self.toonAttacks[toonId] = getToonAttack(toonId)
         self.d_setChosenToonAttacks()
         self.responses[toonId] += 1
@@ -931,12 +942,14 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         if self.ignoreResponses == 1:
             self.notify.debug('movieDone() - ignoring toon: %d' % toonId)
             return
-        elif self.fsm.getCurrentState().getName() != 'PlayMovie':
-            self.notify.warning('movieDone() - in state %s' % self.fsm.getCurrentState().getName())
-            return
-        elif self.toons.count(toonId) == 0:
-            self.notify.warning('movieDone() - toon: %d not in toon list' % toonId)
-            return
+        else:
+            if self.fsm.getCurrentState().getName() != 'PlayMovie':
+                self.notify.warning('movieDone() - in state %s' % self.fsm.getCurrentState().getName())
+                return
+            else:
+                if self.toons.count(toonId) == 0:
+                    self.notify.warning('movieDone() - toon: %d not in toon list' % toonId)
+                    return
         self.responses[toonId] += 1
         self.notify.debug('toon: %d done with movie' % toonId)
         if self.__allPendingActiveToonsResponded():
@@ -951,12 +964,15 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         if self.ignoreResponses == 1:
             self.notify.debug('rewardDone() - ignoring toon: %d' % toonId)
             return
-        elif stateName not in ('Reward', 'BuildingReward', 'FactoryReward', 'MintReward', 'StageReward', 'CountryClubReward'):
-            self.notify.warning('rewardDone() - in state %s' % stateName)
-            return
-        elif self.toons.count(toonId) == 0:
-            self.notify.warning('rewardDone() - toon: %d not in toon list' % toonId)
-            return
+        else:
+            if stateName not in ('Reward', 'BuildingReward', 'FactoryReward', 'MintReward',
+                                 'StageReward', 'CountryClubReward'):
+                self.notify.warning('rewardDone() - in state %s' % stateName)
+                return
+            else:
+                if self.toons.count(toonId) == 0:
+                    self.notify.warning('rewardDone() - toon: %d not in toon list' % toonId)
+                    return
         self.responses[toonId] += 1
         self.notify.debug('toon: %d done with reward' % toonId)
         if self.__allActiveToonsResponded():
@@ -992,21 +1008,25 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         if self.ignoreResponses == 1:
             self.notify.debug('requestAttack() - ignoring toon: %d' % toonId)
             return
-        elif self.fsm.getCurrentState().getName() != 'WaitForInput':
-            self.notify.warning('requestAttack() - in state: %s' % self.fsm.getCurrentState().getName())
-            return
-        elif self.activeToons.count(toonId) == 0:
-            self.notify.warning('requestAttack() - toon: %d not in toon list' % toonId)
-            return
-        self.notify.debug('requestAttack(%d, %d, %d, %d)' % (toonId,
-         track,
-         level,
-         av))
+        else:
+            if self.fsm.getCurrentState().getName() != 'WaitForInput':
+                self.notify.warning('requestAttack() - in state: %s' % self.fsm.getCurrentState().getName())
+                return
+            else:
+                if self.activeToons.count(toonId) == 0:
+                    self.notify.warning('requestAttack() - toon: %d not in toon list' % toonId)
+                    return
+        self.notify.debug('requestAttack(%d, %d, %d, %d)' % (toonId, track, level, av))
         toon = self.getToon(toonId)
         if toon == None:
             self.notify.warning('requestAttack() - no toon: %d' % toonId)
             return
         validResponse = 1
+        if toon.getGameAccess() != ToontownGlobals.AccessFull:
+            if track in [HEAL, TRAP, LURE, SOUND, THROW, SQUIRT, DROP] and gagIsPaidOnly(track, level):
+                self.air.writeServerEvent('suspicious', toonId, 'requestAttack: non-paid player requesting attack with paid gag')
+                return
+
         if track == SOS:
             self.notify.debug('toon: %d calls for help' % toonId)
             self.air.writeServerEvent('friendSOS', toonId, '%s' % av)
@@ -1079,12 +1099,14 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         if self.ignoreResponses == 1:
             self.notify.debug('requestPetProxy() - ignoring toon: %d' % toonId)
             return
-        elif self.fsm.getCurrentState().getName() != 'WaitForInput':
-            self.notify.warning('requestPetProxy() - in state: %s' % self.fsm.getCurrentState().getName())
-            return
-        elif self.activeToons.count(toonId) == 0:
-            self.notify.warning('requestPetProxy() - toon: %d not in toon list' % toonId)
-            return
+        else:
+            if self.fsm.getCurrentState().getName() != 'WaitForInput':
+                self.notify.warning('requestPetProxy() - in state: %s' % self.fsm.getCurrentState().getName())
+                return
+            else:
+                if self.activeToons.count(toonId) == 0:
+                    self.notify.warning('requestPetProxy() - toon: %d not in toon list' % toonId)
+                    return
         self.notify.debug('requestPetProxy(%s, %s)' % (toonId, av))
         toon = self.getToon(toonId)
         if toon == None:
@@ -1095,7 +1117,7 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         if petId == av:
             if not self.pets.has_key(toonId):
 
-                def handleGetPetProxy(success, petProxy, petId = petId, zoneId = zoneId, toonId = toonId):
+                def handleGetPetProxy(success, petProxy, petId=petId, zoneId=zoneId, toonId=toonId):
                     if success:
                         if petId not in simbase.air.doId2do:
                             simbase.air.requestDeleteDoId(petId)
@@ -1119,7 +1141,7 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
     def toonCanJoin(self):
         return len(self.toons) < 4 and self.isJoinable()
 
-    def __requestMovie(self, timeout = 0):
+    def __requestMovie(self, timeout=0):
         if self.adjustFsm.getCurrentState().getName() == 'Adjusting':
             self.notify.debug('__requestMovie() - in Adjusting')
             self.movieRequested = 1
@@ -1127,10 +1149,12 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
             movieDelay = 0
             if len(self.activeToons) == 0:
                 self.notify.warning('only pending toons left in battle %s, toons = %s' % (self.doId, self.toons))
-            elif len(self.activeSuits) == 0:
-                self.notify.warning('only pending suits left in battle %s, suits = %s' % (self.doId, self.suits))
-            elif len(self.activeToons) > 1 and not timeout:
-                movieDelay = 1
+            else:
+                if len(self.activeSuits) == 0:
+                    self.notify.warning('only pending suits left in battle %s, suits = %s' % (self.doId, self.suits))
+                else:
+                    if len(self.activeToons) > 1 and not timeout:
+                        movieDelay = 1
             self.fsm.request('MakeMovie')
             if movieDelay:
                 taskMgr.doMethodLater(0.8, self.__makeMovie, self.uniqueName('make-movie'))
@@ -1138,7 +1162,7 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
             else:
                 self.__makeMovie()
 
-    def __makeMovie(self, task = None):
+    def __makeMovie(self, task=None):
         self.notify.debug('makeMovie()')
         if self._DOAI_requestedDelete:
             self.notify.warning('battle %s requested delete, then __makeMovie was called!' % self.doId)
@@ -1230,7 +1254,7 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
                 if toon is not None:
                     toon.doRestock(0)
 
-        return
+        return None
 
     def exitWaitForInput(self):
         self.npcAttacks = {}
@@ -1310,11 +1334,8 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
                         npcTrapAttacks.append(attack)
                         toon = self.getToon(attack[TOON_ID_COL])
                         av = attack[TOON_TGT_COL]
-                        if toon != None and toon.NPCFriendsDict.has_key(av):
-                            toon.NPCFriendsDict[av] -= 1
-                            if toon.NPCFriendsDict[av] <= 0:
-                                del toon.NPCFriendsDict[av]
-                            toon.d_setNPCFriendsDict(toon.NPCFriendsDict)
+                        if toon:
+                            toon.attemptSubtractNPCFriend(av)
                         continue
                 if track != NO_ATTACK:
                     toonId = attack[TOON_ID_COL]
@@ -1324,11 +1345,8 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
                     if attack[TOON_TRACK_COL] == NPCSOS:
                         toon = self.getToon(toonId)
                         av = attack[TOON_TGT_COL]
-                        if toon != None and toon.NPCFriendsDict.has_key(av):
-                            toon.NPCFriendsDict[av] -= 1
-                            if toon.NPCFriendsDict[av] <= 0:
-                                del toon.NPCFriendsDict[av]
-                            toon.d_setNPCFriendsDict(toon.NPCFriendsDict)
+                        if toon:
+                            toon.attemptSubtractNPCFriend(av)
                     elif track == PETSOS:
                         pass
                     elif track == FIRE:
@@ -1340,6 +1358,8 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
                             if check == -1:
                                 self.air.writeServerEvent('suspicious', toonId, 'Toon generating movie for non-existant gag track %s level %s' % (track, level))
                                 self.notify.warning('generating movie for non-existant gag track %s level %s! avId: %s' % (track, level, toonId))
+                            if not toon.hasTrackAccess(track):
+                                self.air.writeServerEvent('suspicious', toonId, 'Toon trying to throw gag on track they do not have access to (gag track %s level %s)' % (track, level))
                             toon.d_setInventory(toon.inventory.makeNetString())
                     hps = attack[TOON_HP_COL]
                     if track == SOS:
@@ -1539,6 +1559,7 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         lastActiveSuitDied = 0
         if len(self.activeSuits) == 0 and len(self.pendingSuits) == 0:
             lastActiveSuitDied = 1
+        self.notify.debug('calculate hit points, %s' % self.suitAttacks)
         for i in range(4):
             attack = self.suitAttacks[i][SUIT_ATK_COL]
             if attack != NO_ATTACK:
@@ -1561,11 +1582,11 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
                             targetIndex = self.activeToons.index(activeToon)
                             toonDied = self.suitAttacks[i][TOON_DIED_COL] & 1 << targetIndex
                             if targetIndex >= len(hps):
-                                self.notify.warning('DAMAGE: toon %s is no longer in battle!' % activeToon)
+                                self.notify.warning('DAMAGE GRP: toon %s is no longer in battle!' % activeToon)
                             else:
                                 hp = hps[targetIndex]
                                 if hp > 0:
-                                    self.notify.debug('DAMAGE: toon: %d hit for dmg: %d' % (activeToon, hp))
+                                    self.notify.debug('DAMAGE GRP: toon: %d hit for dmg: %d' % (activeToon, hp))
                                     if toonDied != 0:
                                         toonHpDict[toon.doId][2] = 1
                                     toonHpDict[toon.doId][1] += hp
@@ -1575,15 +1596,18 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
                     if targetIndex >= len(self.activeToons):
                         self.notify.warning('movieDone() - toon: %d gone!' % targetIndex)
                         break
+                    if targetIndex < 0:
+                        self.notify.warning('movieDone() - target index is for an already gone toon!')
+                        continue
                     toonId = self.activeToons[targetIndex]
                     toon = self.getToon(toonId)
                     toonDied = self.suitAttacks[i][TOON_DIED_COL] & 1 << targetIndex
                     if targetIndex >= len(hps):
-                        self.notify.warning('DAMAGE: toon %s is no longer in battle!' % toonId)
+                        self.notify.warning('DAMAGE SGL: toon %s is no longer in battle!' % toonId)
                     else:
                         hp = hps[targetIndex]
                         if hp > 0:
-                            self.notify.debug('DAMAGE: toon: %d hit for dmg: %d' % (toonId, hp))
+                            self.notify.debug('DAMAGE SGL: toon: %d hit for dmg: %d' % (toonId, hp))
                             if toonDied != 0:
                                 toonHpDict[toon.doId][2] = 1
                             toonHpDict[toon.doId][1] += hp
@@ -1736,8 +1760,9 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         currStateName = self.fsm.getCurrentState().getName()
         if currStateName == 'WaitForInput':
             self.timer.restart()
-        elif currStateName == 'WaitForJoin':
-            self.b_setState('WaitForInput')
+        else:
+            if currStateName == 'WaitForJoin':
+                self.b_setState('WaitForInput')
         self.adjustingTimer.stop()
         return None
 
@@ -1799,7 +1824,7 @@ class DistributedBattleBaseAI(DistributedObjectAI.DistributedObjectAI, BattleBas
         dbo = DatabaseObject.DatabaseObject(self.air, petId, doneEvent=doneEvent)
         pet = dbo.readPetProxy()
 
-        def handlePetProxyRead(dbo, retCode, callback = callback, pet = pet):
+        def handlePetProxyRead(dbo, retCode, callback=callback, pet=pet):
             success = retCode == 0
             if not success:
                 self.notify.warning('pet DB read failed')

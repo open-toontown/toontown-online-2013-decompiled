@@ -17,7 +17,7 @@ class BattleManagerAI:
             return self.cellId2battle[cellId]
         return None
 
-    def newBattle(self, cellId, zoneId, pos, suit, toonId, finishCallback = None, maxSuits = 4, interactivePropTrackBonus = -1):
+    def newBattle(self, cellId, zoneId, pos, suit, toonId, finishCallback=None, maxSuits=4, interactivePropTrackBonus=-1):
         if self.cellId2battle.has_key(cellId):
             self.notify.info("A battle is already present in the suit's zone!")
             if not self.requestBattleAddSuit(cellId, suit):

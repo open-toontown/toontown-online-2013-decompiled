@@ -8,8 +8,7 @@ from direct.task import Task
 from direct.directnotify import DirectNotifyGlobal
 from direct.fsm import State
 from direct.showbase.PythonUtil import addListsByValue
-import random
-import types
+import random, types
 
 class DistributedBattleFinalAI(DistributedBattleBaseAI.DistributedBattleBaseAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedBattleFinalAI')
@@ -24,7 +23,8 @@ class DistributedBattleFinalAI(DistributedBattleBaseAI.DistributedBattleBaseAI):
         self.elevatorPos = Point3(0, 0, 0)
         self.pos = Point3(0, 30, 0)
         self.resumeNeedUpdate = 0
-        self.fsm.addState(State.State('ReservesJoining', self.enterReservesJoining, self.exitReservesJoining, ['WaitForJoin']))
+        self.fsm.addState(State.State('ReservesJoining', self.enterReservesJoining, self.exitReservesJoining, [
+         'WaitForJoin']))
         offState = self.fsm.getStateNamed('Off')
         offState.addTransition('ReservesJoining')
         waitForJoinState = self.fsm.getStateNamed('WaitForJoin')
@@ -78,36 +78,37 @@ class DistributedBattleFinalAI(DistributedBattleBaseAI.DistributedBattleBaseAI):
 
             self.d_setMembers()
             self.b_setState('ReservesJoining')
-        elif len(self.suits) == 0:
-            battleMultiplier = getBossBattleCreditMultiplier(self.battleNumber)
-            for toonId in self.activeToons:
-                toon = self.getToon(toonId)
-                if toon:
-                    recovered, notRecovered = self.air.questManager.recoverItems(toon, self.suitsKilledThisBattle, self.zoneId)
-                    self.toonItems[toonId][0].extend(recovered)
-                    self.toonItems[toonId][1].extend(notRecovered)
-
-            self.d_setMembers()
-            self.d_setBattleExperience()
-            self.b_setState('Reward')
         else:
-            if self.resumeNeedUpdate == 1:
+            if len(self.suits) == 0:
+                battleMultiplier = getBossBattleCreditMultiplier(self.battleNumber)
+                for toonId in self.activeToons:
+                    toon = self.getToon(toonId)
+                    if toon:
+                        recovered, notRecovered = self.air.questManager.recoverItems(toon, self.suitsKilledThisBattle, self.zoneId)
+                        self.toonItems[toonId][0].extend(recovered)
+                        self.toonItems[toonId][1].extend(notRecovered)
+
                 self.d_setMembers()
-                if len(self.resumeDeadSuits) > 0 and self.resumeLastActiveSuitDied == 0 or len(self.resumeDeadToons) > 0:
-                    self.needAdjust = 1
-            self.setState('WaitForJoin')
+                self.d_setBattleExperience()
+                self.b_setState('Reward')
+            else:
+                if self.resumeNeedUpdate == 1:
+                    self.d_setMembers()
+                    if len(self.resumeDeadSuits) > 0 and self.resumeLastActiveSuitDied == 0 or len(self.resumeDeadToons) > 0:
+                        self.needAdjust = 1
+                self.setState('WaitForJoin')
         self.resumeNeedUpdate = 0
         self.resumeDeadToons = []
         self.resumeDeadSuits = []
         self.resumeLastActiveSuitDied = 0
 
-    def enterReservesJoining(self, ts = 0):
+    def enterReservesJoining(self, ts=0):
         self.beginBarrier('ReservesJoining', self.toons, 15, self.__doneReservesJoining)
 
     def __doneReservesJoining(self, avIds):
         self.b_setState('WaitForJoin')
 
-    def exitReservesJoining(self, ts = 0):
+    def exitReservesJoining(self, ts=0):
         return None
 
     def enterReward(self):
