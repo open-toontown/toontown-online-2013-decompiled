@@ -1,3 +1,4 @@
+from pandac import PandaModules as PM
 from otp.ai.AIBaseGlobal import *
 from direct.distributed.ClockDelta import *
 from direct.distributed import DistributedObjectAI
@@ -26,7 +27,7 @@ class DistributedLevelAI(DistributedObjectAI.DistributedObjectAI, Level.Level):
     def setLevelSpec(self, levelSpec):
         self.levelSpec = levelSpec
 
-    def generate(self, levelSpec = None):
+    def generate(self, levelSpec=None):
         self.notify.debug('generate')
         DistributedObjectAI.DistributedObjectAI.generate(self)
         if levelSpec == None:
@@ -50,7 +51,7 @@ class DistributedLevelAI(DistributedObjectAI.DistributedObjectAI, Level.Level):
     def getBattleCreditMultiplier(self):
         return 1.0
 
-    def delete(self, deAllocZone = True):
+    def delete(self, deAllocZone=True):
         self.notify.debug('delete')
         if __dev__:
             self.removeAutosaveTask()
@@ -83,6 +84,9 @@ class DistributedLevelAI(DistributedObjectAI.DistributedObjectAI, Level.Level):
         if not self.presentAvIds:
             self.allToonsGone([])
 
+    def _levelControlsRequestDelete(self):
+        return True
+
     def allToonsGone(self, toonsThatCleared):
         DistributedLevelAI.notify.info('allToonsGone')
         if hasattr(self, 'allToonsGoneBarrier'):
@@ -91,7 +95,8 @@ class DistributedLevelAI(DistributedObjectAI.DistributedObjectAI, Level.Level):
         for avId in self.avIdList:
             self.ignore(self.air.getAvatarExitEvent(avId))
 
-        self.requestDelete()
+        if self._levelControlsRequestDelete():
+            self.requestDelete()
 
     def createEntityCreator(self):
         return EntityCreatorAI.EntityCreatorAI(level=self)
@@ -111,17 +116,19 @@ class DistributedLevelAI(DistributedObjectAI.DistributedObjectAI, Level.Level):
         self.notify.info('av %s: specHash %s, entTypeRegHash %s' % (senderId, specHash, entTypeRegHash))
         if not __dev__:
             self.notify.info('client is in dev mode and we are not')
-            self.sendUpdateToAvatarId(senderId, 'setSpecDeny', ['AI server is not running in dev mode. Set want-dev to false on your client or true on the AI.'])
+            self.sendUpdateToAvatarId(senderId, 'setSpecDeny', [
+             'AI server is not running in dev mode. Set want-dev to false on your client or true on the AI.'])
             return
         srvHash = self.levelSpec.entTypeReg.getHashStr()
         self.notify.info('srv entTypeRegHash %s' % srvHash)
         if srvHash != entTypeRegHash:
-            self.sendUpdateToAvatarId(senderId, 'setSpecDeny', ['EntityTypeRegistry hashes do not match! (server:%s, client:%s' % (srvHash, entTypeRegHash)])
+            self.sendUpdateToAvatarId(senderId, 'setSpecDeny', [
+             'EntityTypeRegistry hashes do not match! (server:%s, client:%s' % (srvHash, entTypeRegHash)])
             return
-        if hash(self.levelSpec) != specHash:
+        if self.levelSpec.stringHash() != specHash:
             self.notify.info('spec hashes do not match, sending our spec')
             spec = self.levelSpec
-            useDisk = simbase.config.GetBool('spec-by-disk', 1)
+            useDisk = simbase.air._specByDisk
         else:
             self.notify.info('spec hashes match, sending null spec')
             spec = None
@@ -134,15 +141,10 @@ class DistributedLevelAI(DistributedObjectAI.DistributedObjectAI, Level.Level):
 
     if __dev__:
 
-        def setAttribChange(self, entId, attribName, value, username = 'SYSTEM'):
-            DistributedLevelAI.notify.info('setAttribChange(%s): %s, %s = %s' % (username,
-             entId,
-             attribName,
-             repr(value)))
-            self.sendUpdate('setAttribChange', [entId,
-             attribName,
-             repr(value),
-             username])
+        def setAttribChange(self, entId, attribName, value, username='SYSTEM'):
+            DistributedLevelAI.notify.info('setAttribChange(%s): %s, %s = %s' % (username, entId, attribName, repr(value)))
+            self.sendUpdate('setAttribChange', [
+             entId, attribName, repr(value), username])
             self.levelSpec.setAttribChange(entId, attribName, value, username)
             self.modified = 1
             self.scheduleAutosave()
@@ -160,7 +162,7 @@ class DistributedLevelAI(DistributedObjectAI.DistributedObjectAI, Level.Level):
                 taskMgr.remove(self.autosaveTaskName)
                 del self.autosaveTask
 
-        def autosaveSpec(self, task = None):
+        def autosaveSpec(self, task=None):
             self.removeAutosaveTask()
             if self.modified:
                 DistributedLevelAI.notify.info('autosaving spec')
@@ -168,7 +170,7 @@ class DistributedLevelAI(DistributedObjectAI.DistributedObjectAI, Level.Level):
                 filename = '%s.autosave' % filename
                 self.levelSpec.saveToDisk(filename, makeBackup=0)
 
-        def saveSpec(self, task = None):
+        def saveSpec(self, task=None):
             DistributedLevelAI.notify.info('saving spec')
             self.removeAutosaveTask()
             if not self.modified:
