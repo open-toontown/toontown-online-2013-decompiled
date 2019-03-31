@@ -16,11 +16,17 @@ class DistributedDaleAI(DistributedCCharBaseAI.DistributedCCharBaseAI):
         DistributedCCharBaseAI.DistributedCCharBaseAI.__init__(self, air, TTLocalizer.Dale)
         self.chipId = chipId
         self.chip = air.doId2do.get(chipId)
-        self.fsm = ClassicFSM.ClassicFSM('DistributedDaleAI', [State.State('Off', self.enterOff, self.exitOff, ['Lonely']),
-         State.State('Lonely', self.enterLonely, self.exitLonely, ['Chatty', 'FollowChip', 'Walk']),
-         State.State('Chatty', self.enterChatty, self.exitChatty, ['Lonely', 'FollowChip', 'Walk']),
-         State.State('Walk', self.enterWalk, self.exitWalk, ['Lonely', 'Chatty']),
-         State.State('FollowChip', self.enterFollowChip, self.exitFollowChip, ['Lonely', 'Chatty', 'FollowChip'])], 'Off', 'Off')
+        self.fsm = ClassicFSM.ClassicFSM('DistributedDaleAI', [
+         State.State('Off', self.enterOff, self.exitOff, [
+          'Lonely']),
+         State.State('Lonely', self.enterLonely, self.exitLonely, [
+          'Chatty', 'FollowChip', 'Walk']),
+         State.State('Chatty', self.enterChatty, self.exitChatty, [
+          'Lonely', 'FollowChip', 'Walk']),
+         State.State('Walk', self.enterWalk, self.exitWalk, [
+          'Lonely', 'Chatty']),
+         State.State('FollowChip', self.enterFollowChip, self.exitFollowChip, [
+          'Lonely', 'Chatty', 'FollowChip'])], 'Off', 'Off')
         self.fsm.enterInitialState()
         self.handleHolidays()
 
@@ -132,3 +138,9 @@ class DistributedDaleAI(DistributedCCharBaseAI.DistributedCCharBaseAI):
 
     def getChipId(self):
         return self.chipId
+
+    def enterTransitionToCostume(self):
+        pass
+
+    def exitTransitionToCostume(self):
+        pass

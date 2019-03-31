@@ -1,8 +1,10 @@
 from otp.ai.AIBaseGlobal import *
 from direct.distributed.ClockDelta import *
 from otp.avatar import DistributedAvatarAI
+from otp.avatar.DistributedPlayerAI import DistributedPlayerAI
 from direct.directnotify import DirectNotifyGlobal
 from toontown.toonbase import ToontownGlobals
+import random
 
 class DistributedCCharBaseAI(DistributedAvatarAI.DistributedAvatarAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedCCharBaseAI')
@@ -15,9 +17,68 @@ class DistributedCCharBaseAI(DistributedAvatarAI.DistributedAvatarAI):
         self.diffPath = None
         return
 
+    def generate(self):
+        DistributedAvatarAI.DistributedAvatarAI.generate(self)
+        if config.GetBool('classic-char-client-spam', 0):
+            self._ccharSpamTask = taskMgr.add(self._simSpam, 'cchar-spam-%s' % serialNum())
+
+    def _simSpam(self, task):
+        AvEnter = 'avatarEnter'
+        AvExit = 'avatarExit'
+        SetChat = 'setNearbyAvatarChat'
+        SetSC = 'setNearbyAvatarSC'
+        SetSCCustom = 'setNearbyAvatarSCCustom'
+        SetSCToontask = 'setNearbyAvatarSCToontask'
+        msgs = (AvEnter, AvExit, SetChat, SetSC, SetSCCustom, SetSCToontask)
+        msg = random.choice(msgs)
+        r = random.random()
+        fixedAvId = 1000000006
+        if r < 0.3:
+            avId = random.randrange(1L << 32)
+        else:
+            if r < 0.6:
+                players = self.air.doFindAllOfType('DistributedToonAI')[0]
+                if len(players):
+                    player = random.choice(players)
+                    avId = player.doId
+                else:
+                    avId = fixedAvId
+            else:
+                avId = fixedAvId
+        savedIdFunc = self.air.getAvatarIdFromSender
+        self.air.getAvatarIdFromSender = lambda : avId
+        rrange = random.randrange
+        if msg is AvEnter:
+            self.avatarEnter()
+        elif msg is AvExit:
+            self.avatarExit()
+        else:
+            if msg is SetChat:
+                length = rrange(1024)
+                s = ''
+                for i in xrange(length):
+                    s += chr(rrange(1 << 8))
+
+                self.setNearbyAvatarChat(s)
+            else:
+                if msg is SetSC:
+                    self.setNearbyAvatarSC(rrange(1 << 16))
+                else:
+                    if msg is SetSCCustom:
+                        self.setNearbyAvatarSCCustom(rrange(1 << 16))
+                    else:
+                        if msg is SetSCToontask:
+                            self.setNearbyAvatarSCToontask(rrange(1 << 32), rrange(1 << 32), rrange(1 << 32), rrange(1 << 8))
+        self.air.getAvatarIdFromSender = savedIdFunc
+        return task.cont
+
     def delete(self):
         self.ignoreAll()
+        if hasattr(self, '_ccharSpamTask'):
+            taskMgr.remove(self._ccharSpamTask)
+            self._ccharSpamTask = None
         DistributedAvatarAI.DistributedAvatarAI.delete(self)
+        return
 
     def exitOff(self):
         self.__initAttentionSpan()
@@ -25,6 +86,16 @@ class DistributedCCharBaseAI(DistributedAvatarAI.DistributedAvatarAI):
 
     def avatarEnter(self):
         avId = self.air.getAvatarIdFromSender()
+        if avId not in self.air.doId2do:
+            self.air.writeServerEvent('suspicious', avId, 'CCharBaseAI.avatarEnter from unknown avId')
+            return
+        av = self.air.getDo(avId)
+        if not isinstance(av, DistributedPlayerAI):
+            self.air.writeServerEvent('suspicious', avId, 'CCharBaseAI.avatarEnter from non-player object to cchar %s' % self.doId)
+            return
+        if av.zoneId != self.zoneId:
+            self.air.writeServerEvent('suspicious', avId, 'CCharBaseAI.avatarEnter from av in zone %s, my zone is %s' % (av.zoneId, self.zoneId))
+            return
         self.notify.debug('adding avatar ' + str(avId) + ' to the nearby avatar list')
         if avId not in self.nearbyAvatars:
             self.nearbyAvatars.append(avId)
@@ -54,7 +125,6 @@ class DistributedCCharBaseAI(DistributedAvatarAI.DistributedAvatarAI):
             self.ignore(avExitEvent)
             del self.nearbyAvatarInfoDict[avId]
             self.nearbyAvatars.remove(avId)
-            self.avatarExitNextState()
 
     def avatarEnterNextState():
         pass
@@ -68,15 +138,16 @@ class DistributedCCharBaseAI(DistributedAvatarAI.DistributedAvatarAI):
 
     def sortNearbyAvatars(self):
 
-        def nAv_compare(a, b, nAvIDict = self.nearbyAvatarInfoDict):
+        def nAv_compare(a, b, nAvIDict=self.nearbyAvatarInfoDict):
             tsA = nAvIDict[a]['enterTime']
             tsB = nAvIDict[b]['enterTime']
             if tsA == tsB:
                 return 0
-            elif tsA < tsB:
-                return -1
             else:
-                return 1
+                if tsA < tsB:
+                    return -1
+                else:
+                    return 1
 
         self.nearbyAvatars.sort(nAv_compare)
 
@@ -92,7 +163,7 @@ class DistributedCCharBaseAI(DistributedAvatarAI.DistributedAvatarAI):
     def __initAttentionSpan(self):
         self.__avatarTimeoutBase = 0
 
-    def __interestingAvatarEventOccured(self, t = None):
+    def __interestingAvatarEventOccured(self, t=None):
         if t == None:
             t = globalClock.getRealTime()
         self.__avatarTimeoutBase = t
@@ -124,10 +195,7 @@ class DistributedCCharBaseAI(DistributedAvatarAI.DistributedAvatarAI):
 
     def setNearbyAvatarSCToontask(self, taskId, toNpcId, toonProgress, msgIndex):
         avId = self.air.getAvatarIdFromSender()
-        self.notify.debug('setNearbyAvatarSCToontask: avatar %s said %s' % (avId, (taskId,
-          toNpcId,
-          toonProgress,
-          msgIndex)))
+        self.notify.debug('setNearbyAvatarSCToontask: avatar %s said %s' % (avId, (taskId, toNpcId, toonProgress, msgIndex)))
         self.__avatarSpoke(avId)
 
     def getWalk(self):
@@ -159,6 +227,12 @@ class DistributedCCharBaseAI(DistributedAvatarAI.DistributedAvatarAI):
                 self.CCChatter = ToontownGlobals.SILLY_CHATTER_THREE
             elif ToontownGlobals.SILLY_CHATTER_FOUR in simbase.air.holidayManager.currentHolidays:
                 self.CCChatter = ToontownGlobals.SILLY_CHATTER_FOUR
+            elif ToontownGlobals.SILLY_CHATTER_FIVE in simbase.air.holidayManager.currentHolidays:
+                self.CCChatter = ToontownGlobals.SILLY_CHATTER_FOUR
+            elif ToontownGlobals.HALLOWEEN_COSTUMES in simbase.air.holidayManager.currentHolidays:
+                self.CCChatter = ToontownGlobals.HALLOWEEN_COSTUMES
+            elif ToontownGlobals.SELLBOT_FIELD_OFFICE in simbase.air.holidayManager.currentHolidays:
+                self.CCChatter = ToontownGlobals.SELLBOT_FIELD_OFFICE
 
     def getCCLocation(self):
         return 0

@@ -4,8 +4,7 @@ from direct.directnotify import DirectNotifyGlobal
 from direct.fsm import ClassicFSM, State
 from direct.fsm import State
 from direct.task import Task
-import random
-import CharStateDatasAI
+import random, CharStateDatasAI
 from toontown.toonbase import ToontownGlobals
 from toontown.toonbase import TTLocalizer
 
@@ -14,10 +13,15 @@ class DistributedDonaldDockAI(DistributedCCharBaseAI.DistributedCCharBaseAI):
 
     def __init__(self, air):
         DistributedCCharBaseAI.DistributedCCharBaseAI.__init__(self, air, TTLocalizer.DonaldDock)
-        self.fsm = ClassicFSM.ClassicFSM('DistributedDonaldDockAI', [State.State('Off', self.enterOff, self.exitOff, ['Lonely', 'TransitionToCostume']),
-         State.State('Lonely', self.enterLonely, self.exitLonely, ['Chatty', 'TransitionToCostume']),
-         State.State('Chatty', self.enterChatty, self.exitChatty, ['Lonely', 'TransitionToCostume']),
-         State.State('TransitionToCostume', self.enterTransitionToCostume, self.exitTransitionToCostume, ['Off'])], 'Off', 'Off')
+        self.fsm = ClassicFSM.ClassicFSM('DistributedDonaldDockAI', [
+         State.State('Off', self.enterOff, self.exitOff, [
+          'Lonely', 'TransitionToCostume']),
+         State.State('Lonely', self.enterLonely, self.exitLonely, [
+          'Chatty', 'TransitionToCostume']),
+         State.State('Chatty', self.enterChatty, self.exitChatty, [
+          'Lonely', 'TransitionToCostume']),
+         State.State('TransitionToCostume', self.enterTransitionToCostume, self.exitTransitionToCostume, [
+          'Off'])], 'Off', 'Off')
         self.fsm.enterInitialState()
         self.handleHolidays()
 

@@ -14,10 +14,15 @@ class DistributedGoofyAI(DistributedCCharBaseAI.DistributedCCharBaseAI):
 
     def __init__(self, air):
         DistributedCCharBaseAI.DistributedCCharBaseAI.__init__(self, air, TTLocalizer.Goofy)
-        self.fsm = ClassicFSM.ClassicFSM('DistributedGoofyAI', [State.State('Off', self.enterOff, self.exitOff, ['Lonely']),
-         State.State('Lonely', self.enterLonely, self.exitLonely, ['Chatty', 'Walk']),
-         State.State('Chatty', self.enterChatty, self.exitChatty, ['Lonely', 'Walk']),
-         State.State('Walk', self.enterWalk, self.exitWalk, ['Lonely', 'Chatty'])], 'Off', 'Off')
+        self.fsm = ClassicFSM.ClassicFSM('DistributedGoofyAI', [
+         State.State('Off', self.enterOff, self.exitOff, [
+          'Lonely']),
+         State.State('Lonely', self.enterLonely, self.exitLonely, [
+          'Chatty', 'Walk']),
+         State.State('Chatty', self.enterChatty, self.exitChatty, [
+          'Lonely', 'Walk']),
+         State.State('Walk', self.enterWalk, self.exitWalk, [
+          'Lonely', 'Chatty'])], 'Off', 'Off')
         self.fsm.enterInitialState()
 
     def delete(self):
@@ -80,10 +85,23 @@ class DistributedGoofyAI(DistributedCCharBaseAI.DistributedCCharBaseAI):
     def enterChatty(self):
         self.chatty.enter()
         self.acceptOnce(self.chattyDoneEvent, self.__decideNextState)
+        taskMgr.doMethodLater(CharStateDatasAI.CHATTY_DURATION + 10, self.forceLeaveChatty, self.taskName('forceLeaveChatty'))
+
+    def forceLeaveChatty(self, task):
+        self.notify.warning('Had to force change of state from Chatty state')
+        doneStatus = {}
+        doneStatus['state'] = 'chatty'
+        doneStatus['status'] = 'done'
+        self.__decideNextState(doneStatus)
+        return Task.done
+
+    def cleanUpChattyTasks(self):
+        taskMgr.removeTasksMatching(self.taskName('forceLeaveChatty'))
 
     def exitChatty(self):
         self.ignore(self.chattyDoneEvent)
         self.chatty.exit()
+        self.cleanUpChattyTasks()
 
     def enterWalk(self):
         self.notify.debug('going for a walk')
