@@ -22,7 +22,7 @@ class __GolfManagerAI(DirectObject.DirectObject):
     def delete(self):
         DirectObject.DirectObject.delete(self)
 
-    def readyGolfCourse(self, avIds, courseId = 0):
+    def readyGolfCourse(self, avIds, courseId=0):
         self.notify.debug('readyGolfCourse avIds=%s courseId=%d' % (avIds, courseId))
         golfZone = simbase.air.allocateZone()
         preferredHoleId = None
