@@ -13,7 +13,7 @@ if __debug__:
 class GZHoodDataAI(HoodDataAI.HoodDataAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('GZHoodDataAI')
 
-    def __init__(self, air, zoneId = None):
+    def __init__(self, air, zoneId=None):
         hoodId = ToontownGlobals.GolfZone
         if zoneId == None:
             zoneId = hoodId
@@ -42,16 +42,18 @@ class GZHoodDataAI(HoodDataAI.HoodDataAI):
             if distObj:
                 if distObj.getName().count('city'):
                     type = 'city'
-                elif distObj.getName().count('stadium'):
-                    type = 'stadium'
-                elif distObj.getName().count('country'):
-                    type = 'country'
+                else:
+                    if distObj.getName().count('stadium'):
+                        type = 'stadium'
+                    else:
+                        if distObj.getName().count('country'):
+                            type = 'country'
                 for subscription in LBSubscription[type]:
                     distObj.subscribeTo(subscription)
 
                 self.addDistObj(distObj)
 
-    def __cycleLeaderBoards(self, task = None):
+    def __cycleLeaderBoards(self, task=None):
         messenger.send('GS_LeaderBoardSwap')
         taskMgr.doMethodLater(self.cycleDuration, self.__cycleLeaderBoards, str(self) + '_leaderBoardSwitch')
 

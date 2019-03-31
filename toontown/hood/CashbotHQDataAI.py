@@ -13,7 +13,7 @@ from toontown.building import DistributedBoardingPartyAI
 class CashbotHQDataAI(HoodDataAI.HoodDataAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('CashbotHqDataAI')
 
-    def __init__(self, air, zoneId = None):
+    def __init__(self, air, zoneId=None):
         hoodId = ToontownGlobals.CashbotHQ
         if zoneId == None:
             zoneId = hoodId
@@ -43,11 +43,13 @@ class CashbotHQDataAI(HoodDataAI.HoodDataAI):
             self.boardingParty.generateWithRequired(ToontownGlobals.CashbotLobby)
         destinationZone = ToontownGlobals.CashbotLobby
         extDoor0 = DistributedCogHQDoorAI.DistributedCogHQDoorAI(self.air, 0, DoorTypes.EXT_COGHQ, destinationZone, doorIndex=0, lockValue=FADoorCodes.CB_DISGUISE_INCOMPLETE)
-        extDoorList = [extDoor0]
+        extDoorList = [
+         extDoor0]
         intDoor0 = DistributedCogHQDoorAI.DistributedCogHQDoorAI(self.air, 0, DoorTypes.INT_COGHQ, ToontownGlobals.CashbotHQ, doorIndex=0)
         intDoor0.setOtherDoor(extDoor0)
         intDoor0.zoneId = ToontownGlobals.CashbotLobby
-        mintIdList = [self.testElev0.doId, self.testElev1.doId, self.testElev2.doId]
+        mintIdList = [
+         self.testElev0.doId, self.testElev1.doId, self.testElev2.doId]
         if simbase.config.GetBool('want-boarding-groups', 1):
             self.mintBoardingParty = DistributedBoardingPartyAI.DistributedBoardingPartyAI(self.air, mintIdList, 4)
             self.mintBoardingParty.generateWithRequired(self.zoneId)

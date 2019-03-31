@@ -11,7 +11,7 @@ if __debug__:
 class GSHoodDataAI(HoodDataAI.HoodDataAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('GSHoodDataAI')
 
-    def __init__(self, air, zoneId = None):
+    def __init__(self, air, zoneId=None):
         hoodId = ToontownGlobals.GoofySpeedway
         if zoneId == None:
             zoneId = hoodId
@@ -53,16 +53,18 @@ class GSHoodDataAI(HoodDataAI.HoodDataAI):
             if distObj:
                 if distObj.getName().count('city'):
                     type = 'city'
-                elif distObj.getName().count('stadium'):
-                    type = 'stadium'
-                elif distObj.getName().count('country'):
-                    type = 'country'
+                else:
+                    if distObj.getName().count('stadium'):
+                        type = 'stadium'
+                    else:
+                        if distObj.getName().count('country'):
+                            type = 'country'
                 for subscription in LBSubscription[type]:
                     distObj.subscribeTo(subscription)
 
                 self.addDistObj(distObj)
 
-    def __cycleLeaderBoards(self, task = None):
+    def __cycleLeaderBoards(self, task=None):
         messenger.send('GS_LeaderBoardSwap' + str(self.zoneId))
         taskMgr.doMethodLater(self.cycleDuration, self.__cycleLeaderBoards, str(self) + '_leaderBoardSwitch')
 
@@ -112,3 +114,10 @@ class GSHoodDataAI(HoodDataAI.HoodDataAI):
             self.addDistObj(racePad)
 
         return
+
+    def logPossibleRaceCondition(self, startBlock):
+        for sb in self.startingBlocks:
+            if sb == startBlock:
+                if not sb.kartPad:
+                    self.notify.warning('%s is in a broken state' % str(self))
+                    self.notify.warning('StartingBlocks: %d, RacePads: %s, ViewPads: %s, RacePadGroups: %s, ViewPadGroups: %s' % (len(self.startingBlocks), str(self.racingPads), str(self.viewingPads), str(self.foundRacingPadGroups), str(self.foundViewingPadGroups)))

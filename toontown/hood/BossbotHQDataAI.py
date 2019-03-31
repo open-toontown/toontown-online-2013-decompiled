@@ -16,7 +16,7 @@ from toontown.coghq import DistributedCogKartAI
 class BossbotHQDataAI(HoodDataAI.HoodDataAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('BossbotHQDataAI')
 
-    def __init__(self, air, zoneId = None):
+    def __init__(self, air, zoneId=None):
         self.notify.debug('__init__: zoneId:%s' % zoneId)
         hoodId = ToontownGlobals.BossbotHQ
         if zoneId == None:
@@ -28,11 +28,8 @@ class BossbotHQDataAI(HoodDataAI.HoodDataAI):
     def startup(self):
         HoodDataAI.HoodDataAI.startup(self)
 
-        def makeOfficeElevator(index, antiShuffle = 0, minLaff = 0):
-            destZone = (ToontownGlobals.LawbotStageIntA,
-             ToontownGlobals.LawbotStageIntB,
-             ToontownGlobals.LawbotStageIntC,
-             ToontownGlobals.LawbotStageIntD)[index]
+        def makeOfficeElevator(index, antiShuffle=0, minLaff=0):
+            destZone = (ToontownGlobals.LawbotStageIntA, ToontownGlobals.LawbotStageIntB, ToontownGlobals.LawbotStageIntC, ToontownGlobals.LawbotStageIntD)[index]
             elev = DistributedLawOfficeElevatorExtAI.DistributedLawOfficeElevatorExtAI(self.air, self.air.lawMgr, destZone, index, antiShuffle=0, minLaff=minLaff)
             elev.generateWithRequired(ToontownGlobals.LawbotOfficeExt)
             self.addDistObj(elev)
@@ -47,7 +44,7 @@ class BossbotHQDataAI(HoodDataAI.HoodDataAI):
             self.boardingParty = DistributedBoardingPartyAI.DistributedBoardingPartyAI(self.air, [self.lobbyElevator.doId], 8)
             self.boardingParty.generateWithRequired(ToontownGlobals.BossbotLobby)
 
-        def makeDoor(destinationZone, intDoorIndex, extDoorIndex, lock = 0):
+        def makeDoor(destinationZone, intDoorIndex, extDoorIndex, lock=0):
             intDoor = DistributedCogHQDoorAI.DistributedCogHQDoorAI(self.air, 0, DoorTypes.INT_COGHQ, self.canonicalHoodId, doorIndex=intDoorIndex, lockValue=lock)
             intDoor.zoneId = destinationZone
             extDoor = DistributedCogHQDoorAI.DistributedCogHQDoorAI(self.air, 0, DoorTypes.EXT_COGHQ, destinationZone, doorIndex=extDoorIndex, lockValue=lock)
@@ -67,7 +64,8 @@ class BossbotHQDataAI(HoodDataAI.HoodDataAI):
             self.courseBoardingParty.generateWithRequired(self.zoneId)
 
     def createCogKarts(self):
-        posList = ((154.762, 37.169, 0), (141.403, -81.887, 0), (-48.44, 15.308, 0))
+        posList = (
+         (154.762, 37.169, 0), (141.403, -81.887, 0), (-48.44, 15.308, 0))
         hprList = ((110.815, 0, 0), (61.231, 0, 0), (-105.481, 0, 0))
         mins = ToontownGlobals.FactoryLaffMinimums[3]
         kartIdList = []

@@ -11,7 +11,7 @@ from toontown.safezone import ButterflyGlobals
 class DGHoodDataAI(HoodDataAI.HoodDataAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('DGHoodDataAI')
 
-    def __init__(self, air, zoneId = None):
+    def __init__(self, air, zoneId=None):
         hoodId = ToontownGlobals.DaisyGardens
         if zoneId == None:
             zoneId = hoodId

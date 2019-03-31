@@ -3,16 +3,17 @@ import HoodDataAI
 from toontown.toonbase import ToontownGlobals
 from toontown.coghq import DistributedFactoryElevatorExtAI
 from toontown.coghq import DistributedCogHQDoorAI
+from toontown.coghq import DistributedSellbotHQDoorAI
 from toontown.building import DoorTypes
 from toontown.coghq import LobbyManagerAI
-from toontown.building import DistributedBossElevatorAI
+from toontown.building import DistributedVPElevatorAI
 from toontown.suit import DistributedSellbotBossAI
 from toontown.building import DistributedBoardingPartyAI
 
 class CSHoodDataAI(HoodDataAI.HoodDataAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('CSHoodDataAI')
 
-    def __init__(self, air, zoneId = None):
+    def __init__(self, air, zoneId=None):
         hoodId = ToontownGlobals.SellbotHQ
         if zoneId == None:
             zoneId = hoodId
@@ -31,7 +32,7 @@ class CSHoodDataAI(HoodDataAI.HoodDataAI):
         self.lobbyMgr = LobbyManagerAI.LobbyManagerAI(self.air, DistributedSellbotBossAI.DistributedSellbotBossAI)
         self.lobbyMgr.generateWithRequired(ToontownGlobals.SellbotLobby)
         self.addDistObj(self.lobbyMgr)
-        self.lobbyElevator = DistributedBossElevatorAI.DistributedBossElevatorAI(self.air, self.lobbyMgr, ToontownGlobals.SellbotLobby, antiShuffle=1)
+        self.lobbyElevator = DistributedVPElevatorAI.DistributedVPElevatorAI(self.air, self.lobbyMgr, ToontownGlobals.SellbotLobby, antiShuffle=1)
         self.lobbyElevator.generateWithRequired(ToontownGlobals.SellbotLobby)
         self.addDistObj(self.lobbyElevator)
         if simbase.config.GetBool('want-boarding-groups', 1):
@@ -42,14 +43,11 @@ class CSHoodDataAI(HoodDataAI.HoodDataAI):
             self.factoryBoardingParty = DistributedBoardingPartyAI.DistributedBoardingPartyAI(self.air, factoryIdList, 4)
             self.factoryBoardingParty.generateWithRequired(ToontownGlobals.SellbotFactoryExt)
         destinationZone = ToontownGlobals.SellbotLobby
-        extDoor0 = DistributedCogHQDoorAI.DistributedCogHQDoorAI(self.air, 0, DoorTypes.EXT_COGHQ, destinationZone, doorIndex=0)
-        extDoor1 = DistributedCogHQDoorAI.DistributedCogHQDoorAI(self.air, 1, DoorTypes.EXT_COGHQ, destinationZone, doorIndex=1)
-        extDoor2 = DistributedCogHQDoorAI.DistributedCogHQDoorAI(self.air, 2, DoorTypes.EXT_COGHQ, destinationZone, doorIndex=2)
-        extDoor3 = DistributedCogHQDoorAI.DistributedCogHQDoorAI(self.air, 3, DoorTypes.EXT_COGHQ, destinationZone, doorIndex=3)
-        extDoorList = [extDoor0,
-         extDoor1,
-         extDoor2,
-         extDoor3]
+        extDoor0 = DistributedSellbotHQDoorAI.DistributedSellbotHQDoorAI(self.air, 0, DoorTypes.EXT_COGHQ, destinationZone, doorIndex=0)
+        extDoor1 = DistributedSellbotHQDoorAI.DistributedSellbotHQDoorAI(self.air, 1, DoorTypes.EXT_COGHQ, destinationZone, doorIndex=1)
+        extDoor2 = DistributedSellbotHQDoorAI.DistributedSellbotHQDoorAI(self.air, 2, DoorTypes.EXT_COGHQ, destinationZone, doorIndex=2)
+        extDoor3 = DistributedSellbotHQDoorAI.DistributedSellbotHQDoorAI(self.air, 3, DoorTypes.EXT_COGHQ, destinationZone, doorIndex=3)
+        extDoorList = [extDoor0, extDoor1, extDoor2, extDoor3]
         for sp in self.suitPlanners:
             if sp.zoneId == ToontownGlobals.SellbotHQ:
                 sp.cogHQDoors = extDoorList

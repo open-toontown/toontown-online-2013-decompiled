@@ -10,7 +10,7 @@ from direct.task import Task
 class TTHoodDataAI(HoodDataAI.HoodDataAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('TTHoodDataAI')
 
-    def __init__(self, air, zoneId = None):
+    def __init__(self, air, zoneId=None):
         hoodId = ToontownGlobals.ToontownCentral
         if zoneId == None:
             zoneId = hoodId

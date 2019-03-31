@@ -9,7 +9,7 @@ from toontown.toon import DistributedNPCFishermanAI
 class BRHoodDataAI(HoodDataAI.HoodDataAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('BRHoodDataAI')
 
-    def __init__(self, air, zoneId = None):
+    def __init__(self, air, zoneId=None):
         hoodId = ToontownGlobals.TheBrrrgh
         if zoneId == None:
             zoneId = hoodId

@@ -20,11 +20,12 @@ if __debug__:
 class OZHoodDataAI(HoodDataAI.HoodDataAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('OZHoodDataAI')
 
-    def __init__(self, air, zoneId = None):
+    def __init__(self, air, zoneId=None):
         hoodId = ToontownGlobals.OutdoorZone
         if zoneId == None:
             zoneId = hoodId
         HoodDataAI.HoodDataAI.__init__(self, air, zoneId, hoodId)
+        self.classicChars = []
         return
 
     def startup(self):
@@ -34,10 +35,12 @@ class OZHoodDataAI(HoodDataAI.HoodDataAI):
             chip.generateWithRequired(self.zoneId)
             chip.start()
             self.addDistObj(chip)
+            self.classicChars.append(chip)
             dale = DistributedDaleAI.DistributedDaleAI(self.air, chip.doId)
             dale.generateWithRequired(self.zoneId)
             dale.start()
             self.addDistObj(dale)
+            self.classicChars.append(dale)
             chip.setDaleId(dale.doId)
         self.treasurePlanner = OZTreasurePlannerAI.OZTreasurePlannerAI(self.zoneId)
         self.treasurePlanner.start()
@@ -65,16 +68,18 @@ class OZHoodDataAI(HoodDataAI.HoodDataAI):
             if distObj:
                 if distObj.getName().count('city'):
                     type = 'city'
-                elif distObj.getName().count('stadium'):
-                    type = 'stadium'
-                elif distObj.getName().count('country'):
-                    type = 'country'
+                else:
+                    if distObj.getName().count('stadium'):
+                        type = 'stadium'
+                    else:
+                        if distObj.getName().count('country'):
+                            type = 'country'
                 for subscription in LBSubscription[type]:
                     distObj.subscribeTo(subscription)
 
                 self.addDistObj(distObj)
 
-    def __cycleLeaderBoards(self, task = None):
+    def __cycleLeaderBoards(self, task=None):
         messenger.send('GS_LeaderBoardSwap')
         taskMgr.doMethodLater(self.cycleDuration, self.__cycleLeaderBoards, str(self) + '_leaderBoardSwitch')
 

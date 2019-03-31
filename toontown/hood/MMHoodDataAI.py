@@ -9,7 +9,7 @@ from toontown.safezone import DistributedMMPianoAI
 class MMHoodDataAI(HoodDataAI.HoodDataAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('MMHoodDataAI')
 
-    def __init__(self, air, zoneId = None):
+    def __init__(self, air, zoneId=None):
         hoodId = ToontownGlobals.MinniesMelodyland
         if zoneId == None:
             zoneId = hoodId
