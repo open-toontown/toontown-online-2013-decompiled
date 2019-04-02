@@ -3,8 +3,7 @@ from direct.distributed.ClockDelta import *
 from direct.directnotify import DirectNotifyGlobal
 from toontown.battle import SuitBattleGlobals
 from toontown.toonbase import ToontownGlobals
-import DistributedSuitBaseAI
-import random
+import DistributedSuitBaseAI, random
 from direct.fsm import ClassicFSM, State
 from direct.fsm import State
 
@@ -16,13 +15,21 @@ class DistributedLawbotBossSuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
         self.stunned = False
         self.timeToRelease = 3.15
         self.timeProsecuteStarted = 0
-        self.fsm = ClassicFSM.ClassicFSM('DistributedLawbotBossSuitAI', [State.State('Off', self.enterOff, self.exitOff, ['neutral']),
-         State.State('neutral', self.enterNeutral, self.exitNeutral, ['PreThrowProsecute', 'PreThrowAttack', 'Stunned']),
-         State.State('PreThrowProsecute', self.enterPreThrowProsecute, self.exitPreThrowProsecute, ['PostThrowProsecute', 'neutral', 'Stunned']),
-         State.State('PostThrowProsecute', self.enterPostThrowProsecute, self.exitPostThrowProsecute, ['neutral', 'Stunned']),
-         State.State('PreThrowAttack', self.enterPreThrowAttack, self.exitPreThrowAttack, ['PostThrowAttack', 'neutral', 'Stunned']),
-         State.State('PostThrowAttack', self.enterPostThrowAttack, self.exitPostThrowAttack, ['neutral', 'Stunned']),
-         State.State('Stunned', self.enterStunned, self.exitStunned, ['neutral'])], 'Off', 'Off')
+        self.fsm = ClassicFSM.ClassicFSM('DistributedLawbotBossSuitAI', [
+         State.State('Off', self.enterOff, self.exitOff, [
+          'neutral']),
+         State.State('neutral', self.enterNeutral, self.exitNeutral, [
+          'PreThrowProsecute', 'PreThrowAttack', 'Stunned']),
+         State.State('PreThrowProsecute', self.enterPreThrowProsecute, self.exitPreThrowProsecute, [
+          'PostThrowProsecute', 'neutral', 'Stunned']),
+         State.State('PostThrowProsecute', self.enterPostThrowProsecute, self.exitPostThrowProsecute, [
+          'neutral', 'Stunned']),
+         State.State('PreThrowAttack', self.enterPreThrowAttack, self.exitPreThrowAttack, [
+          'PostThrowAttack', 'neutral', 'Stunned']),
+         State.State('PostThrowAttack', self.enterPostThrowAttack, self.exitPostThrowAttack, [
+          'neutral', 'Stunned']),
+         State.State('Stunned', self.enterStunned, self.exitStunned, [
+          'neutral'])], 'Off', 'Off')
         self.fsm.enterInitialState()
 
     def delete(self):
@@ -59,15 +66,12 @@ class DistributedLawbotBossSuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
             self.d_denyBattle(toonId)
 
     def getPosHpr(self):
-        return (self.getX(),
-         self.getY(),
-         self.getZ(),
-         self.getH(),
-         self.getP(),
-         self.getR())
+        return (
+         self.getX(), self.getY(), self.getZ(), self.getH(), self.getP(), self.getR())
 
     def getConfrontPosHpr(self):
-        return (self.confrontPos, self.confrontHpr)
+        return (
+         self.confrontPos, self.confrontHpr)
 
     def _logDeath(self, toonId):
         pass
@@ -116,18 +120,8 @@ class DistributedLawbotBossSuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
         self.sendUpdate('doProsecute', [])
 
     def d_doAttack(self, x1, y1, z1, x2, y2, z2):
-        self.notify.debug('doAttack: x1=%.2f y1=%.2f z2=%.2f x2=%.2f y2=%.2f z2=%.2f' % (x1,
-         y1,
-         z1,
-         x2,
-         y2,
-         z2))
-        self.sendUpdate('doAttack', [x1,
-         y1,
-         z1,
-         x2,
-         y2,
-         z2])
+        self.notify.debug('doAttack: x1=%.2f y1=%.2f z2=%.2f x2=%.2f y2=%.2f z2=%.2f' % (x1, y1, z1, x2, y2, z2))
+        self.sendUpdate('doAttack', [x1, y1, z1, x2, y2, z2])
 
     def setBoss(self, lawbotBoss):
         self.boss = lawbotBoss

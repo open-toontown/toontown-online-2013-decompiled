@@ -8,26 +8,12 @@ from toontown.toonbase import ToontownGlobals
 from otp.otpbase import OTPGlobals
 from toontown.coghq import DistributedCashbotBossObjectAI
 from direct.showbase import PythonUtil
-import DistributedGoonAI
-import math
-import random
+import DistributedGoonAI, math, random
 
 class DistributedCashbotBossGoonAI(DistributedGoonAI.DistributedGoonAI, DistributedCashbotBossObjectAI.DistributedCashbotBossObjectAI):
     legLength = 10
-    directionTable = [(0, 15),
-     (10, 10),
-     (-10, 10),
-     (20, 8),
-     (-20, 8),
-     (40, 5),
-     (-40, 5),
-     (60, 4),
-     (-60, 4),
-     (80, 3),
-     (-80, 3),
-     (120, 2),
-     (-120, 2),
-     (180, 1)]
+    directionTable = [
+     (0, 15), (10, 10), (-10, 10), (20, 8), (-20, 8), (40, 5), (-40, 5), (60, 4), (-60, 4), (80, 3), (-80, 3), (120, 2), (-120, 2), (180, 1)]
     offMask = BitMask32(0)
     onMask = CollisionNode.getDefaultCollideMask()
 
@@ -65,19 +51,22 @@ class DistributedCashbotBossGoonAI(DistributedGoonAI.DistributedGoonAI, Distribu
             self.boss.damageToon(avatar, self.strength)
         DistributedGoonAI.DistributedGoonAI.requestBattle(self, pauseTime)
 
-    def sendMovie(self, type, avId = 0, pauseTime = 0):
+    def sendMovie(self, type, avId=0, pauseTime=0):
         if type == GoonGlobals.GOON_MOVIE_WALK:
             self.demand('Walk')
-        elif type == GoonGlobals.GOON_MOVIE_BATTLE:
-            self.demand('Battle')
-        elif type == GoonGlobals.GOON_MOVIE_STUNNED:
-            self.demand('Stunned')
-        elif type == GoonGlobals.GOON_MOVIE_RECOVERY:
-            self.demand('Recovery')
         else:
-            self.notify.warning('Ignoring movie type %s' % type)
+            if type == GoonGlobals.GOON_MOVIE_BATTLE:
+                self.demand('Battle')
+            else:
+                if type == GoonGlobals.GOON_MOVIE_STUNNED:
+                    self.demand('Stunned')
+                else:
+                    if type == GoonGlobals.GOON_MOVIE_RECOVERY:
+                        self.demand('Recovery')
+                    else:
+                        self.notify.warning('Ignoring movie type %s' % type)
 
-    def __chooseTarget(self, extraDelay = 0):
+    def __chooseTarget(self, extraDelay=0):
         direction = self.__chooseDirection()
         if direction == None:
             self.target = None
@@ -132,10 +121,12 @@ class DistributedCashbotBossGoonAI(DistributedGoonAI.DistributedGoonAI, Distribu
                 heading, weight = self.directionTable[i]
                 seg = self.feelers[i]
                 dist = entries.get(seg, self.feelerLength)
-                return (heading, dist)
+                return (
+                 heading, dist)
 
         self.notify.warning('Fell off end of weighted table.')
-        return (0, self.legLength)
+        return (
+         0, self.legLength)
 
     def __startWalk(self):
         if self.arrivalTime == None:
@@ -152,7 +143,7 @@ class DistributedCashbotBossGoonAI(DistributedGoonAI.DistributedGoonAI, Distribu
             self.__reachedTarget(None)
         return
 
-    def __stopWalk(self, pauseTime = None):
+    def __stopWalk(self, pauseTime=None):
         if self.isWalking:
             taskMgr.remove(self.uniqueName('reachedTarget'))
             if pauseTime == None:
@@ -187,6 +178,13 @@ class DistributedCashbotBossGoonAI(DistributedGoonAI.DistributedGoonAI, Distribu
             return
         if self.state == 'Stunned' or self.state == 'Grabbed':
             return
+        toon = self.air.doId2do.get(avId)
+        if toon:
+            toonDistance = self.getPos(toon).length()
+            if toonDistance > self.attackRadius * 2:
+                self.air.writeServerEvent('suspicious', avId, 'Stunned a goon, but outside of attack radius. Possible multihack.')
+                taskMgr.doMethodLater(0, self.__recoverWalk, self.uniqueName('recoverWalk'))
+                return
         self.__stopWalk(pauseTime)
         self.boss.makeTreasure(self)
         DistributedGoonAI.DistributedGoonAI.requestStunned(self, pauseTime)
@@ -203,10 +201,7 @@ class DistributedCashbotBossGoonAI(DistributedGoonAI.DistributedGoonAI, Distribu
         self.b_destroyGoon()
 
     def d_setTarget(self, x, y, h, arrivalTime):
-        self.sendUpdate('setTarget', [x,
-         y,
-         h,
-         arrivalTime])
+        self.sendUpdate('setTarget', [x, y, h, arrivalTime])
 
     def d_destroyGoon(self):
         self.sendUpdate('destroyGoon')

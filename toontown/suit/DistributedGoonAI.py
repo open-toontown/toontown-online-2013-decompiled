@@ -35,6 +35,7 @@ class DistributedGoonAI(DistributedCrushableEntityAI.DistributedCrushableEntityA
         taskMgr.remove(self.taskName('resumeWalk'))
         taskMgr.remove(self.taskName('recovery'))
         taskMgr.remove(self.taskName('deleteGoon'))
+        taskMgr.remove(self.taskName('GoonBombCheck'))
         DistributedCrushableEntityAI.DistributedCrushableEntityAI.delete(self)
 
     def generate(self):
@@ -57,16 +58,37 @@ class DistributedGoonAI(DistributedCrushableEntityAI.DistributedCrushableEntityA
     def requestStunned(self, pauseTime):
         avId = self.air.getAvatarIdFromSender()
         self.notify.debug('requestStunned(%s)' % avId)
+        if self.level:
+            if not hasattr(self.level, 'goonStunRequests'):
+                self.level.goonStunRequests = {}
+            if taskMgr.hasTaskNamed(self.taskName('GoonBombCheck')):
+                if self.level.goonStunRequests.has_key(avId):
+                    self.level.goonStunRequests[avId] = self.level.goonStunRequests[avId] + 1
+                else:
+                    self.level.goonStunRequests[avId] = 1
+            else:
+                self.level.goonStunRequests[avId] = 1
+                taskMgr.doMethodLater(0.1, self.accumulateGoonMessages, self.taskName('GoonBombCheck'))
         self.sendMovie(GOON_MOVIE_STUNNED, avId, pauseTime)
         taskMgr.remove(self.taskName('recovery'))
         taskMgr.doMethodLater(self.STUN_TIME, self.sendMovie, self.taskName('recovery'), extraArgs=(GOON_MOVIE_RECOVERY, avId, pauseTime))
 
-    def requestResync(self, task = None):
+    def accumulateGoonMessages(self, task):
+        if not hasattr(self.level, 'goonStunRequests'):
+            return
+        for toonId in self.level.goonStunRequests:
+            if self.level.goonStunRequests[toonId] > 2:
+                self.air.writeServerEvent('suspicious', toonId, 'Stunned multiple goons very close together. Possible multihack.')
+
+        self.level.goonStunRequests.clear()
+        del self.level.goonStunRequests
+
+    def requestResync(self, task=None):
         self.notify.debug('resyncGoon')
         self.sendMovie(GOON_MOVIE_SYNC)
         self.updateGrid()
 
-    def sendMovie(self, type, avId = 0, pauseTime = 0):
+    def sendMovie(self, type, avId=0, pauseTime=0):
         if type == GOON_MOVIE_WALK:
             self.pathStartTime = globalClock.getFrameTime()
             if self.parameterized:
@@ -80,17 +102,11 @@ class DistributedGoonAI(DistributedCrushableEntityAI.DistributedCrushableEntityA
             pathT = self.walkTrackTime + elapsedT
             if self.parameterized:
                 pathT = pathT % self.totalPathTime
-            self.sendUpdate('setMovie', [type,
-             avId,
-             pathT,
-             ClockDelta.globalClockDelta.localToNetworkTime(curT)])
+            self.sendUpdate('setMovie', [type, avId, pathT, ClockDelta.globalClockDelta.localToNetworkTime(curT)])
             taskMgr.remove(self.taskName('sync'))
             taskMgr.doMethodLater(self.UPDATE_TIMESTAMP_INTERVAL, self.requestResync, self.taskName('sync'), extraArgs=None)
         else:
-            self.sendUpdate('setMovie', [type,
-             avId,
-             pauseTime,
-             ClockDelta.globalClockDelta.getFrameNetworkTime()])
+            self.sendUpdate('setMovie', [type, avId, pauseTime, ClockDelta.globalClockDelta.getFrameNetworkTime()])
         return
 
     def updateGrid(self):
@@ -240,8 +256,4 @@ class DistributedGoonAI(DistributedCrushableEntityAI.DistributedCrushableEntityA
         self.setGoonScale(scale)
 
     def d_setupGoon(self, velocity, hFov, attackRadius, strength, scale):
-        self.sendUpdate('setupGoon', [velocity,
-         hFov,
-         attackRadius,
-         strength,
-         scale])
+        self.sendUpdate('setupGoon', [velocity, hFov, attackRadius, strength, scale])

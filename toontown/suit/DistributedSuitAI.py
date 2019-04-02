@@ -4,10 +4,7 @@ from direct.distributed.ClockDelta import *
 from otp.avatar import DistributedAvatarAI
 import SuitTimings
 from direct.task import Task
-import SuitPlannerBase
-import SuitBase
-import SuitDialog
-import SuitDNA
+import SuitPlannerBase, SuitBase, SuitDialog, SuitDNA
 from direct.directnotify import DirectNotifyGlobal
 from toontown.battle import SuitBattleGlobals
 from toontown.building import FADoorCodes
@@ -40,6 +37,7 @@ class DistributedSuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
         self.flyInSuit = 0
         self.buildingSuit = 0
         self.attemptingTakeover = 0
+        self.takeoverIsCogdo = False
         self.buildingDestination = None
         self.buildingDestinationIsCogdo = False
         return
@@ -64,19 +62,21 @@ class DistributedSuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
             return
         if self.pathState == 3:
             pass
-        elif self.pathState != 1:
-            if self.notify.getDebug():
-                self.notify.debug('requestBattle() - suit %d not on path' % self.getDoId())
-            if self.pathState == 2 or self.pathState == 4:
-                self.b_setBrushOff(SuitDialog.getBrushOffIndex(self.getStyleName()))
-            self.d_denyBattle(toonId)
-            return
-        elif self.legType != SuitLeg.TWalk:
-            if self.notify.getDebug():
-                self.notify.debug('requestBattle() - suit %d not in Bellicose' % self.getDoId())
-            self.b_setBrushOff(SuitDialog.getBrushOffIndex(self.getStyleName()))
-            self.d_denyBattle(toonId)
-            return
+        else:
+            if self.pathState != 1:
+                if self.notify.getDebug():
+                    self.notify.debug('requestBattle() - suit %d not on path' % self.getDoId())
+                if self.pathState == 2 or self.pathState == 4:
+                    self.b_setBrushOff(SuitDialog.getBrushOffIndex(self.getStyleName()))
+                self.d_denyBattle(toonId)
+                return
+            else:
+                if self.legType != SuitLeg.TWalk:
+                    if self.notify.getDebug():
+                        self.notify.debug('requestBattle() - suit %d not in Bellicose' % self.getDoId())
+                    self.b_setBrushOff(SuitDialog.getBrushOffIndex(self.getStyleName()))
+                    self.d_denyBattle(toonId)
+                    return
         self.confrontPos = Point3(x, y, z)
         self.confrontHpr = Vec3(h, p, r)
         if self.sp.requestBattle(self.zoneId, self, toonId):
@@ -90,7 +90,8 @@ class DistributedSuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
         return
 
     def getConfrontPosHpr(self):
-        return (self.confrontPos, self.confrontHpr)
+        return (
+         self.confrontPos, self.confrontHpr)
 
     def flyAwayNow(self):
         self.b_setPathState(2)
@@ -128,10 +129,7 @@ class DistributedSuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
         self.d_setPathEndpoints(start, end, minPathLen, maxPathLen)
 
     def d_setPathEndpoints(self, start, end, minPathLen, maxPathLen):
-        self.sendUpdate('setPathEndpoints', [start,
-         end,
-         minPathLen,
-         maxPathLen])
+        self.sendUpdate('setPathEndpoints', [start, end, minPathLen, maxPathLen])
 
     def setPathEndpoints(self, start, end, minPathLen, maxPathLen):
         self.pathEndpointStart = start
@@ -140,10 +138,8 @@ class DistributedSuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
         self.maxPathLen = maxPathLen
 
     def getPathEndpoints(self):
-        return (self.pathEndpointStart,
-         self.pathEndpointEnd,
-         self.minPathLen,
-         self.maxPathLen)
+        return (
+         self.pathEndpointStart, self.pathEndpointEnd, self.minPathLen, self.maxPathLen)
 
     def b_setPathPosition(self, index, timestamp):
         self.setPathPosition(index, timestamp)
@@ -158,7 +154,8 @@ class DistributedSuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
         self.pathPositionTimestamp = timestamp
 
     def getPathPosition(self):
-        return (self.pathPositionIndex, globalClockDelta.localToNetworkTime(self.pathPositionTimestamp))
+        return (
+         self.pathPositionIndex, globalClockDelta.localToNetworkTime(self.pathPositionTimestamp))
 
     def b_setPathState(self, state):
         self.setPathState(state)
@@ -189,11 +186,8 @@ class DistributedSuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
 
     def d_debugSuitPosition(self, elapsed, currentLeg, x, y, timestamp):
         timestamp = globalClockDelta.localToNetworkTime(timestamp)
-        self.sendUpdate('debugSuitPosition', [elapsed,
-         currentLeg,
-         x,
-         y,
-         timestamp])
+        self.sendUpdate('debugSuitPosition', [
+         elapsed, currentLeg, x, y, timestamp])
 
     def initializePath(self):
         self.makeLegList()
@@ -226,10 +220,7 @@ class DistributedSuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
             zoneId = self.legList.getZoneId(nextLeg)
             zoneId = ZoneUtil.getTrueZoneId(zoneId, self.branchId)
             self.__enterZone(zoneId)
-            self.notify.debug('Suit %d reached leg %d of %d in zone %d.' % (self.getDoId(),
-             nextLeg,
-             numLegs - 1,
-             self.zoneId))
+            self.notify.debug('Suit %d reached leg %d of %d in zone %d.' % (self.getDoId(), nextLeg, numLegs - 1, self.zoneId))
             if self.DEBUG_SUIT_POSITIONS:
                 leg = self.legList.getLeg(nextLeg)
                 pos = leg.getPosAtTime(elapsed - leg.getStartTime())
@@ -268,14 +259,18 @@ class DistributedSuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
         self.legType = legType
         if legType == SuitLeg.TWalkFromStreet:
             self.checkBuildingState()
-        elif legType == SuitLeg.TToToonBuilding:
-            self.openToonDoor()
-        elif legType == SuitLeg.TToSuitBuilding:
-            self.openSuitDoor()
-        elif legType == SuitLeg.TToCoghq:
-            self.openCogHQDoor(1)
-        elif legType == SuitLeg.TFromCoghq:
-            self.openCogHQDoor(0)
+        else:
+            if legType == SuitLeg.TToToonBuilding:
+                self.openToonDoor()
+            else:
+                if legType == SuitLeg.TToSuitBuilding:
+                    self.openSuitDoor()
+                else:
+                    if legType == SuitLeg.TToCoghq:
+                        self.openCogHQDoor(1)
+                    else:
+                        if legType == SuitLeg.TFromCoghq:
+                            self.openCogHQDoor(0)
 
     def resume(self):
         self.notify.debug('Suit %s resume' % self.doId)
@@ -304,8 +299,9 @@ class DistributedSuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
                 self.flyAwayNow()
                 return
             building.door.setDoorLock(FADoorCodes.SUIT_APPROACHING)
-        elif not building.isSuitBlock():
-            self.flyAwayNow()
+        else:
+            if not building.isSuitBlock():
+                self.flyAwayNow()
         return
 
     def openToonDoor(self):
@@ -346,8 +342,8 @@ class DistributedSuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
         if not self.sp.buildingMgr.isSuitBlock(blockNumber):
             self.notify.debug('Suit %d taking over building %d in %d' % (self.getDoId(), blockNumber, self.zoneId))
             difficulty = self.getActualLevel() - 1
+            dept = SuitDNA.getSuitDept(self.dna.name)
             if self.buildingDestinationIsCogdo:
-                self.sp.cogdoTakeOver(blockNumber, difficulty, self.buildingHeight)
+                self.sp.cogdoTakeOver(blockNumber, dept, difficulty, self.buildingHeight)
             else:
-                dept = SuitDNA.getSuitDept(self.dna.name)
                 self.sp.suitTakeOver(blockNumber, dept, difficulty, self.buildingHeight)

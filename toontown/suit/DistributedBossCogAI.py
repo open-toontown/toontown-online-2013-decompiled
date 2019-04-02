@@ -7,9 +7,9 @@ from toontown.toon import InventoryBase
 from toontown.battle import DistributedBattleFinalAI
 from toontown.building import SuitPlannerInteriorAI
 from toontown.battle import BattleBase
+from toontown.coghq import CogDisguiseGlobals
 from pandac.PandaModules import *
-import SuitDNA
-import random
+import SuitDNA, random
 AllBossCogs = []
 
 class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
@@ -33,18 +33,23 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
         self.activeSuitsB = []
         self.reserveSuits = []
         self.barrier = None
-        self.keyStates = ['BattleOne',
-         'BattleTwo',
-         'BattleThree',
-         'Victory']
+        self.keyStates = [
+         'BattleOne', 'BattleTwo', 'BattleThree', 'Victory']
         self.bossDamage = 0
         self.battleThreeStart = 0
         self.battleThreeDuration = 1800
         self.attackCode = None
         self.attackAvId = 0
         self.hitCount = 0
+        self.nerfed = False
+        self.numRentalDiguises = 0
+        self.numNormalDiguises = 0
         AllBossCogs.append(self)
         return
+
+    def generateWithRequired(self, zoneId):
+        self.numRentalDiguises, self.numNormalDiguises = self.countDisguises()
+        DistributedAvatarAI.DistributedAvatarAI.generateWithRequired(self, zoneId)
 
     def delete(self):
         self.ignoreAll()
@@ -119,6 +124,8 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
             taskMgr.doMethodLater(10, self.__bossDone, self.uniqueName('BossDone'))
 
     def __bossDone(self, task):
+        if self.air:
+            self.air.writeServerEvent('bossBattleDone', self.doId, '%s' % self.dept)
         self.b_setState('Off')
         messenger.send(self.uniqueName('BossDone'))
         self.ignoreAll()
@@ -136,6 +143,40 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
                     alive = 1
 
         return alive
+
+    def isToonKnown(self, toonId):
+        return toonId in self.involvedToons or toonId in self.looseToons
+
+    def isToonWearingRentalSuit(self, toonId):
+        if not self.isToonKnown(toonId):
+            self.notify.warning('isToonWearingRentalSuit: unknown toonId %s' % toonId)
+            return False
+        toon = self.air.doId2do.get(toonId)
+        if toon:
+            if hasattr(toon, 'forceRentalDisguise') and toon.forceRentalDisguise:
+                return True
+            else:
+                return not CogDisguiseGlobals.isPaidSuitComplete(toon, toon.getCogParts(), self.dept)
+        else:
+            self.notify.warning('isToonWearingRentalSuit: toonId %s does not exist' % toonId)
+            return False
+
+    def __countNormalDisguiseToons(self):
+        return len(self.involvedToons) + len(self.looseToons) - self.__countRentalDisguiseToons()
+
+    def __countRentalDisguiseToons(self):
+        count = 0
+        for toonId in self.involvedToons + self.looseToons:
+            if self.isToonWearingRentalSuit(toonId):
+                count += 1
+
+        return count
+
+    def countDisguises(self):
+        rentals = self.__countRentalDisguiseToons()
+        normals = self.__countNormalDisguiseToons()
+        return (
+         rentals, normals)
 
     def sendBattleIds(self):
         self.sendUpdate('setBattleIds', [self.battleNumber, self.battleAId, self.battleBId])
@@ -182,16 +223,34 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
         self.demand(state)
         if self.air:
             if state in self.keyStates:
-                self.air.writeServerEvent('bossBattle', self.doId, '%s|%s|%s|%s' % (self.dept,
-                 state,
-                 self.involvedToons,
-                 self.formatReward()))
+                self.air.writeServerEvent('bossBattle', self.doId, '%s|%s|%s|%s|%s|%s' % (self.dept, state, self.involvedToons, self.formatReward(), self.formatLaffLevels(), self.formatSuitType()))
 
     def getState(self):
         return self.state
 
     def formatReward(self):
         return 'unspecified'
+
+    def formatLaffLevels(self):
+        try:
+            return map(lambda id: simbase.air.doId2do.get(id).getMaxHp(), self.involvedToons)
+        except Exception, e:
+            self.notify.warning(e)
+            return []
+
+    def formatSuitType(self):
+        try:
+
+            def hasSuit(id):
+                if not self.isToonWearingRentalSuit(id):
+                    return 1
+                else:
+                    return 0
+
+            return map(hasSuit, self.involvedToons)
+        except Exception, e:
+            self.notify.warning(e)
+            return []
 
     def enterOff(self):
         self.resetBattles()
@@ -216,10 +275,7 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
             for toonId in self.involvedToons:
                 toon = simbase.air.doId2do.get(toonId)
                 if toon:
-                    self.notify.debug('%s. involved toon %s, %s/%s' % (self.doId,
-                     toonId,
-                     toon.getHp(),
-                     toon.getMaxHp()))
+                    self.notify.debug('%s. involved toon %s, %s/%s' % (self.doId, toonId, toon.getHp(), toon.getMaxHp()))
 
         self.resetBattles()
         self.barrier = self.beginBarrier('Elevator', self.involvedToons, 30, self.__doneElevator)
@@ -333,6 +389,15 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
             self.sendToonIds()
 
     def divideToons(self):
+        if self.nerfed:
+            splitMethod = self.__balancedDivide
+        else:
+            splitMethod = self.__randomDivide
+        self.toonsA, self.toonsB, loose = splitMethod()
+        self.looseToons += loose
+        self.sendToonIds()
+
+    def __randomDivide(self):
         toons = self.involvedToons[:]
         random.shuffle(toons)
         numToons = min(len(toons), 8)
@@ -340,10 +405,27 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
             numToonsB = numToons / 2
         else:
             numToonsB = (numToons + random.choice([0, 1])) / 2
-        self.toonsA = toons[numToonsB:numToons]
-        self.toonsB = toons[:numToonsB]
-        self.looseToons += toons[numToons:]
-        self.sendToonIds()
+        teamA = toons[numToonsB:numToons]
+        teamB = toons[:numToonsB]
+        loose = toons[numToons:]
+        return (
+         teamA, teamB, loose)
+
+    def __balancedDivide(self):
+        toons = self.involvedToons[:]
+        random.shuffle(toons)
+        teamA, teamB, loose = [], [], []
+        for i, toon in enumerate(sorted(toons, key=self.isToonWearingRentalSuit)):
+            if i < 8:
+                if i % 2 == 0:
+                    teamA.append(toon)
+                else:
+                    teamB.append(toon)
+            else:
+                loose.append(toon)
+
+        return (
+         teamA, teamB, loose)
 
     def acceptNewToons(self):
         sourceToons = self.looseToons
@@ -516,7 +598,7 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
         t = max(t0, t1)
         return fromValue + (toValue - fromValue) * min(t, 1)
 
-    def progressRandomValue(self, fromValue, toValue, radius = 0.2):
+    def progressRandomValue(self, fromValue, toValue, radius=0.2):
         t = self.progressValue(0, 1)
         radius = radius * (1.0 - abs(t - 0.5) * 2.0)
         t += radius * random.uniform(-1, 1)
@@ -551,6 +633,7 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
                 self.notify.warning('No damage listed for attack code %s' % attackCode)
                 damage = 5
             damage *= self.getDamageMultiplier()
+            damage = max(int(damage), 1)
             self.damageToon(toon, damage)
             currState = self.getCurrentOrNextState()
             if attackCode == ToontownGlobals.BossCogElectricFence and (currState == 'RollToBattleTwo' or currState == 'BattleThree'):
@@ -562,37 +645,30 @@ class DistributedBossCogAI(DistributedAvatarAI.DistributedAvatarAI):
         return
 
     def d_showZapToon(self, avId, x, y, z, h, p, r, attackCode, timestamp):
-        self.sendUpdate('showZapToon', [avId,
-         x,
-         y,
-         z,
-         h,
-         p,
-         r,
-         attackCode,
-         timestamp])
+        self.sendUpdate('showZapToon', [avId, x, y, z, h, p, r, attackCode, timestamp])
 
-    def b_setAttackCode(self, attackCode, avId = 0):
+    def b_setAttackCode(self, attackCode, avId=0):
         self.d_setAttackCode(attackCode, avId)
         self.setAttackCode(attackCode, avId)
 
-    def setAttackCode(self, attackCode, avId = 0):
+    def setAttackCode(self, attackCode, avId=0):
         self.attackCode = attackCode
         self.attackAvId = avId
         if attackCode == ToontownGlobals.BossCogDizzy or attackCode == ToontownGlobals.BossCogDizzyNow:
             delayTime = self.progressValue(20, 5)
             self.hitCount = 0
-        elif attackCode == ToontownGlobals.BossCogSlowDirectedAttack:
-            delayTime = ToontownGlobals.BossCogAttackTimes.get(attackCode)
-            delayTime += self.progressValue(10, 0)
         else:
-            delayTime = ToontownGlobals.BossCogAttackTimes.get(attackCode)
-            if delayTime == None:
-                return
+            if attackCode == ToontownGlobals.BossCogSlowDirectedAttack:
+                delayTime = ToontownGlobals.BossCogAttackTimes.get(attackCode)
+                delayTime += self.progressValue(10, 0)
+            else:
+                delayTime = ToontownGlobals.BossCogAttackTimes.get(attackCode)
+                if delayTime == None:
+                    return
         self.waitForNextAttack(delayTime)
         return
 
-    def d_setAttackCode(self, attackCode, avId = 0):
+    def d_setAttackCode(self, attackCode, avId=0):
         self.sendUpdate('setAttackCode', [attackCode, avId])
 
     def waitForNextAttack(self, delayTime):

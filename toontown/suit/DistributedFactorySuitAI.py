@@ -1,8 +1,8 @@
 from otp.ai.AIBaseGlobal import *
 from direct.directnotify import DirectNotifyGlobal
 from toontown.battle import SuitBattleGlobals
-import DistributedSuitBaseAI
-import SuitDialog
+import DistributedSuitBaseAI, SuitDialog
+from direct.showbase.PythonUtil import StackTrace
 
 class DistributedFactorySuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedFactorySuitAI')
@@ -20,7 +20,18 @@ class DistributedFactorySuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
 
     def delete(self):
         if not self.factoryGone:
-            self.setBattleCellIndex(None)
+            try:
+                self.setBattleCellIndex(None)
+            except Exception, e:
+                simbase.air.writeServerEvent('avoid_crash', self.doId, 'DistributedFactorySuitAI.delete, factoryIsNotGone, got Exception %s' % str(e))
+                self.notify.warning('delete, factoryIsNotGone, got Exception %s' % str(e))
+                self.notify.warning('stackTrace=%s' % StackTrace().compact())
+                self.notify.warning('doId=%s' % self.doId)
+                if hasattr(self, 'levelDoId'):
+                    self.notify.warning('levelDoId=%s' % self.levelDoId)
+                else:
+                    self.notify.warning('no levelDoId')
+
         del self.blocker
         self.ignoreAll()
         DistributedSuitBaseAI.DistributedSuitBaseAI.delete(self)
@@ -60,7 +71,8 @@ class DistributedFactorySuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
             self.d_denyBattle(toonId)
 
     def getConfrontPosHpr(self):
-        return (self.confrontPos, self.confrontHpr)
+        return (
+         self.confrontPos, self.confrontHpr)
 
     def setBattleCellIndex(self, battleCellIndex):
         self.sp.suitBattleCellChange(self, oldCell=self.battleCellIndex, newCell=battleCellIndex)
@@ -103,7 +115,7 @@ class DistributedFactorySuitAI(DistributedSuitBaseAI.DistributedSuitBaseAI):
     def isForeman(self):
         return self.boss
 
-    def setVirtual(self, isVirtual = 1):
+    def setVirtual(self, isVirtual=1):
         self.virtual = isVirtual
 
     def getVirtual(self):

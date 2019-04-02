@@ -12,8 +12,7 @@ from toontown.toonbase import TTLocalizer
 from toontown.battle import BattleBase
 from toontown.toon import NPCToons
 from toontown.building import SuitBuildingGlobals
-import SuitDNA
-import random
+import SuitDNA, random
 from toontown.coghq import DistributedLawbotBossGavelAI
 from toontown.suit import DistributedLawbotBossSuitAI
 from toontown.coghq import DistributedLawbotCannonAI
@@ -79,7 +78,7 @@ class DistributedLawbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FSM
 
     def hitBoss(self, bossDamage):
         avId = self.air.getAvatarIdFromSender()
-        if not self.validate(avId, avId in self.involvedToons, 'hitBoss from unknown avatar'):
+        if not self.validate(avId, avId in self.involvedToons, 'DistributedLawbotbossAI.hitBoss from unknown avatar'):
             return
         self.validate(avId, bossDamage == 1, 'invalid bossDamage %s' % bossDamage)
         if bossDamage < 1:
@@ -200,6 +199,7 @@ class DistributedLawbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FSM
             self.__doDirectedAttack()
         else:
             self.b_setAttackCode(attackCode)
+
     def __doAreaAttack(self):
         self.b_setAttackCode(ToontownGlobals.BossCogAreaAttack)
 
@@ -266,11 +266,8 @@ class DistributedLawbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FSM
 
     def generateSuits(self, battleNumber):
         if battleNumber == 1:
-            weakenedValue = ((1, 1),
-             (2, 2),
-             (2, 2),
-             (1, 1),
-             (1, 1, 1, 1, 1))
+            weakenedValue = (
+             (1, 1), (2, 2), (2, 2), (1, 1), (1, 1, 1, 1, 1))
             listVersion = list(SuitBuildingGlobals.SuitBuildingInfo)
             if simbase.config.GetBool('lawbot-boss-cheat', 0):
                 listVersion[13] = weakenedValue
@@ -480,17 +477,8 @@ class DistributedLawbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FSM
         if self.numLawyers >= len(ToontownGlobals.LawbotBossLawyerPosHprs):
             self.numLawyers = len(ToontownGlobals.LawbotBossLawyerPosHprs)
         self.toonupValue = diffSettings[3]
-        self.notify.debug('diffLevel=%d ammoCount=%d gavels=%d lawyers = %d, toonup=%d' % (self.battleDifficulty,
-         self.ammoCount,
-         self.numGavels,
-         self.numLawyers,
-         self.toonupValue))
-        self.air.writeServerEvent('lawbotBossSettings', self.doId, '%s|%s|%s|%s|%s|%s' % (self.dept,
-         self.battleDifficulty,
-         self.ammoCount,
-         self.numGavels,
-         self.numLawyers,
-         self.toonupValue))
+        self.notify.debug('diffLevel=%d ammoCount=%d gavels=%d lawyers = %d, toonup=%d' % (self.battleDifficulty, self.ammoCount, self.numGavels, self.numLawyers, self.toonupValue))
+        self.air.writeServerEvent('lawbotBossSettings', self.doId, '%s|%s|%s|%s|%s|%s' % (self.dept, self.battleDifficulty, self.ammoCount, self.numGavels, self.numLawyers, self.toonupValue))
         self.__makeBattleThreeObjects()
         self.__makeLawyers()
         self.numPies = self.ammoCount
@@ -534,7 +522,7 @@ class DistributedLawbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FSM
         retval = min(averageLevel, self.maxToonLevels)
         return retval
 
-    def __saySomething(self, task = None):
+    def __saySomething(self, task=None):
         index = None
         avId = 0
         if len(self.involvedToons) == 0:
@@ -554,7 +542,7 @@ class DistributedLawbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FSM
         self.__saySomethingLater()
         return
 
-    def __saySomethingLater(self, delayTime = 15):
+    def __saySomethingLater(self, delayTime=15):
         taskName = self.uniqueName('CagedToonSaySomething')
         taskMgr.remove(taskName)
         taskMgr.doMethodLater(delayTime, self.__saySomething, taskName)
@@ -600,20 +588,7 @@ class DistributedLawbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FSM
                 self.numToonsAtEnd += 1
                 toonHps.append(toon.hp)
 
-        self.air.writeServerEvent('b3Info', self.doId, '%d|%.2f|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%s|%s' % (didTheyWin,
-         self.battleThreeTimeInMin,
-         self.numToonsAtStart,
-         self.numToonsAtEnd,
-         self.numToonJurorsSeated,
-         self.battleDifficulty,
-         self.ammoCount,
-         self.numGavels,
-         self.numLawyers,
-         self.toonupValue,
-         self.numBonusStates,
-         self.numAreaAttacks,
-         toonHps,
-         self.weightPerToon))
+        self.air.writeServerEvent('b3Info', self.doId, '%d|%.2f|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%s|%s' % (didTheyWin, self.battleThreeTimeInMin, self.numToonsAtStart, self.numToonsAtEnd, self.numToonJurorsSeated, self.battleDifficulty, self.ammoCount, self.numGavels, self.numLawyers, self.toonupValue, self.numBonusStates, self.numAreaAttacks, toonHps, self.weightPerToon))
 
     def exitBattleThree(self):
         self.doBattleThreeInfo()
@@ -632,16 +607,7 @@ class DistributedLawbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FSM
 
     def enterVictory(self):
         self.resetBattles()
-        self.suitsKilled.append({'type': None,
-         'level': None,
-         'track': self.dna.dept,
-         'isSkelecog': 0,
-         'isForeman': 0,
-         'isVP': 1,
-         'isCFO': 0,
-         'isSupervisor': 0,
-         'isVirtual': 0,
-         'activeToons': self.involvedToons[:]})
+        self.suitsKilled.append({'type': None, 'level': None, 'track': self.dna.dept, 'isSkelecog': 0, 'isForeman': 0, 'isVP': 1, 'isCFO': 0, 'isSupervisor': 0, 'isVirtual': 0, 'activeToons': self.involvedToons[:]})
         self.barrier = self.beginBarrier('Victory', self.involvedToons, 30, self.__doneVictory)
         return
 
@@ -698,7 +664,8 @@ class DistributedLawbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FSM
                 possibleCogLevel = range(SuitDNA.suitsPerDept)
                 possibleDeptIndex = range(len(SuitDNA.suitDepts))
                 possibleSummonType = ['single', 'building', 'invasion']
-                typeWeights = ['single'] * 70 + ['building'] * 27 + ['invasion'] * 3
+                typeWeights = [
+                 'single'] * 70 + ['building'] * 27 + ['invasion'] * 3
                 if not foundOne:
                     for i in range(5):
                         randomCogLevel = random.choice(possibleCogLevel)
@@ -779,13 +746,8 @@ class DistributedLawbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FSM
 
     def __makeLawyers(self):
         self.__resetLawyers()
-        lawCogChoices = ['b',
-         'dt',
-         'ac',
-         'bs',
-         'sd',
-         'le',
-         'bw']
+        lawCogChoices = [
+         'b', 'dt', 'ac', 'bs', 'sd', 'le', 'bw']
         for i in range(self.numLawyers):
             suit = DistributedLawbotBossSuitAI.DistributedLawbotBossSuitAI(self.air, None)
             suit.dna = SuitDNA.SuitDNA()

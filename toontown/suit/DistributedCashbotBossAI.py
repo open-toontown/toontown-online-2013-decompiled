@@ -8,10 +8,7 @@ from toontown.coghq import DistributedCashbotBossTreasureAI
 from toontown.battle import BattleExperienceAI
 from toontown.chat import ResistanceChat
 from direct.fsm import FSM
-import DistributedBossCogAI
-import SuitDNA
-import random
-import math
+import DistributedBossCogAI, SuitDNA, random, math
 
 class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FSM):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedCashbotBossAI')
@@ -72,8 +69,7 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
             return cmp(a[1], b[1])
 
         reserveSuits.sort(compareJoinChance)
-        return {'activeSuits': activeSuits,
-         'reserveSuits': reserveSuits}
+        return {'activeSuits': activeSuits, 'reserveSuits': reserveSuits}
 
     def removeToon(self, avId):
         if self.cranes != None:
@@ -182,12 +178,13 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         if goon.strength <= 10:
             style = ToontownGlobals.ToontownCentral
             healAmount = 3
-        elif goon.strength <= 15:
-            style = random.choice([ToontownGlobals.DonaldsDock, ToontownGlobals.DaisyGardens, ToontownGlobals.MinniesMelodyland])
-            healAmount = 10
         else:
-            style = random.choice([ToontownGlobals.TheBrrrgh, ToontownGlobals.DonaldsDreamland])
-            healAmount = 12
+            if goon.strength <= 15:
+                style = random.choice([ToontownGlobals.DonaldsDock, ToontownGlobals.DaisyGardens, ToontownGlobals.MinniesMelodyland])
+                healAmount = 10
+            else:
+                style = random.choice([ToontownGlobals.TheBrrrgh, ToontownGlobals.DonaldsDreamland])
+                healAmount = 12
         if self.recycledTreasures:
             treasure = self.recycledTreasures.pop(0)
             treasure.d_setGrab(0)
@@ -239,18 +236,22 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         t = self.getBattleThreeTime()
         if t <= 1.0:
             return self.maxGoons
-        elif t <= 1.1:
-            return self.maxGoons + 1
-        elif t <= 1.2:
-            return self.maxGoons + 2
-        elif t <= 1.3:
-            return self.maxGoons + 3
-        elif t <= 1.4:
-            return self.maxGoons + 4
         else:
-            return self.maxGoons + 8
+            if t <= 1.1:
+                return self.maxGoons + 1
+            else:
+                if t <= 1.2:
+                    return self.maxGoons + 2
+                else:
+                    if t <= 1.3:
+                        return self.maxGoons + 3
+                    else:
+                        if t <= 1.4:
+                            return self.maxGoons + 4
+                        else:
+                            return self.maxGoons + 8
 
-    def makeGoon(self, side = None):
+    def makeGoon(self, side=None):
         if side == None:
             side = random.choice(['EmergeA', 'EmergeB'])
         goon = self.__chooseOldGoon()
@@ -355,14 +356,15 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
         self.b_setBossDamage(self.bossDamage + damage)
         if self.bossDamage >= self.bossMaxDamage:
             self.b_setState('Victory')
-        elif self.attackCode != ToontownGlobals.BossCogDizzy:
-            if damage >= ToontownGlobals.CashbotBossKnockoutDamage:
-                self.b_setAttackCode(ToontownGlobals.BossCogDizzy)
-                self.stopHelmets()
-            else:
-                self.b_setAttackCode(ToontownGlobals.BossCogNoAttack)
-                self.stopHelmets()
-                self.waitForNextHelmet()
+        else:
+            if self.attackCode != ToontownGlobals.BossCogDizzy:
+                if damage >= ToontownGlobals.CashbotBossKnockoutDamage:
+                    self.b_setAttackCode(ToontownGlobals.BossCogDizzy)
+                    self.stopHelmets()
+                else:
+                    self.b_setAttackCode(ToontownGlobals.BossCogNoAttack)
+                    self.stopHelmets()
+                    self.waitForNextHelmet()
 
     def b_setBossDamage(self, bossDamage):
         self.d_setBossDamage(bossDamage)
@@ -453,16 +455,7 @@ class DistributedCashbotBossAI(DistributedBossCogAI.DistributedBossCogAI, FSM.FS
 
     def enterVictory(self):
         self.resetBattles()
-        self.suitsKilled.append({'type': None,
-         'level': None,
-         'track': self.dna.dept,
-         'isSkelecog': 0,
-         'isForeman': 0,
-         'isVP': 0,
-         'isCFO': 1,
-         'isSupervisor': 0,
-         'isVirtual': 0,
-         'activeToons': self.involvedToons[:]})
+        self.suitsKilled.append({'type': None, 'level': None, 'track': self.dna.dept, 'isSkelecog': 0, 'isForeman': 0, 'isVP': 0, 'isCFO': 1, 'isSupervisor': 0, 'isVirtual': 0, 'activeToons': self.involvedToons[:]})
         self.barrier = self.beginBarrier('Victory', self.involvedToons, 30, self.__doneVictory)
         return
 

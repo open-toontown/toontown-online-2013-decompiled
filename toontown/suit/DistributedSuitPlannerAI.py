@@ -1,7 +1,6 @@
 from otp.ai.AIBaseGlobal import *
 from direct.distributed import DistributedObjectAI
-import SuitPlannerBase
-import DistributedSuitAI
+import SuitPlannerBase, DistributedSuitAI
 from toontown.battle import BattleManagerAI
 from direct.task import Task
 from direct.directnotify import DirectNotifyGlobal
@@ -12,438 +11,18 @@ from toontown.toon import NPCToons
 from toontown.building import HQBuildingAI
 from toontown.hood import ZoneUtil
 from toontown.building import SuitBuildingGlobals
+from toontown.building.DistributedBuildingAI import DistributedBuildingAI
 from toontown.toonbase import ToontownBattleGlobals
 from toontown.toonbase import ToontownGlobals
-import math
-import time
-import random
+import math, time, random
 
 class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlannerBase.SuitPlannerBase):
     CogdoPopFactor = config.GetFloat('cogdo-pop-factor', 1.5)
     CogdoRatio = min(1.0, max(0.0, config.GetFloat('cogdo-ratio', 0.5)))
-    SuitHoodInfo = [[2100,
-      5,
-      15,
-      0,
-      5,
-      20,
-      3,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (25,
-       25,
-       25,
-       25),
-      (1, 2, 3),
-      []],
-     [2200,
-      3,
-      10,
-      0,
-      5,
-      15,
-      3,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (10,
-       70,
-       10,
-       10),
-      (1, 2, 3),
-      []],
-     [2300,
-      3,
-      10,
-      0,
-      5,
-      15,
-      3,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (10,
-       10,
-       40,
-       40),
-      (1, 2, 3),
-      []],
-     [1100,
-      1,
-      5,
-      0,
-      99,
-      100,
-      4,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (90,
-       10,
-       0,
-       0),
-      (2, 3, 4),
-      []],
-     [1200,
-      1,
-      5,
-      0,
-      99,
-      100,
-      4,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (0,
-       0,
-       90,
-       10),
-      (3,
-       4,
-       5,
-       6),
-      []],
-     [1300,
-      1,
-      5,
-      0,
-      99,
-      100,
-      4,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (40,
-       40,
-       10,
-       10),
-      (3,
-       4,
-       5,
-       6),
-      []],
-     [3100,
-      1,
-      5,
-      0,
-      99,
-      100,
-      4,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (90,
-       10,
-       0,
-       0),
-      (5, 6, 7),
-      []],
-     [3200,
-      1,
-      5,
-      0,
-      99,
-      100,
-      4,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (10,
-       20,
-       30,
-       40),
-      (5, 6, 7),
-      []],
-     [3300,
-      1,
-      5,
-      0,
-      99,
-      100,
-      4,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (5,
-       85,
-       5,
-       5),
-      (7, 8, 9),
-      []],
-     [4100,
-      1,
-      5,
-      0,
-      99,
-      100,
-      4,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (0,
-       0,
-       50,
-       50),
-      (2, 3, 4),
-      []],
-     [4200,
-      1,
-      5,
-      0,
-      99,
-      100,
-      4,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (0,
-       0,
-       90,
-       10),
-      (3,
-       4,
-       5,
-       6),
-      []],
-     [4300,
-      1,
-      5,
-      0,
-      99,
-      100,
-      4,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (50,
-       50,
-       0,
-       0),
-      (3,
-       4,
-       5,
-       6),
-      []],
-     [5100,
-      1,
-      5,
-      0,
-      99,
-      100,
-      4,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (0,
-       20,
-       10,
-       70),
-      (2, 3, 4),
-      []],
-     [5200,
-      1,
-      5,
-      0,
-      99,
-      100,
-      4,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (10,
-       70,
-       0,
-       20),
-      (3,
-       4,
-       5,
-       6),
-      []],
-     [5300,
-      1,
-      5,
-      0,
-      99,
-      100,
-      4,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (5,
-       5,
-       5,
-       85),
-      (3,
-       4,
-       5,
-       6),
-      []],
-     [9100,
-      1,
-      5,
-      0,
-      99,
-      100,
-      4,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (25,
-       25,
-       25,
-       25),
-      (6,
-       7,
-       8,
-       9),
-      []],
-     [9200,
-      1,
-      5,
-      0,
-      99,
-      100,
-      4,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (5,
-       5,
-       85,
-       5),
-      (6,
-       7,
-       8,
-       9),
-      []],
-     [11000,
-      3,
-      15,
-      0,
-      0,
-      0,
-      4,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (0,
-       0,
-       0,
-       100),
-      (4, 5, 6),
-      []],
-     [11200,
-      10,
-      20,
-      0,
-      0,
-      0,
-      4,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (0,
-       0,
-       0,
-       100),
-      (4, 5, 6),
-      []],
-     [12000,
-      10,
-      20,
-      0,
-      0,
-      0,
-      4,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (0,
-       0,
-       100,
-       0),
-      (7, 8, 9),
-      []],
-     [13000,
-      10,
-      20,
-      0,
-      0,
-      0,
-      4,
-      (1,
-       5,
-       10,
-       40,
-       60,
-       80),
-      (0,
-       100,
-       0,
-       0),
-      (8, 9, 10),
-      []]]
+    MinimumOfOne = config.GetBool('minimum-of-one-building', 0)
+    SuitHoodInfo = [
+     [
+      2100, 5, 15, 0, 5, 20, 3, (1, 5, 10, 40, 60, 80), (25, 25, 25, 25), (1, 2, 3), []], [2200, 3, 10, 0, 5, 15, 3, (1, 5, 10, 40, 60, 80), (10, 70, 10, 10), (1, 2, 3), []], [2300, 3, 10, 0, 5, 15, 3, (1, 5, 10, 40, 60, 80), (10, 10, 40, 40), (1, 2, 3), []], [1100, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (90, 10, 0, 0), (2, 3, 4), []], [1200, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (0, 0, 90, 10), (3, 4, 5, 6), []], [1300, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (40, 40, 10, 10), (3, 4, 5, 6), []], [3100, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (90, 10, 0, 0), (5, 6, 7), []], [3200, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (10, 20, 30, 40), (5, 6, 7), []], [3300, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (5, 85, 5, 5), (7, 8, 9), []], [4100, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (0, 0, 50, 50), (2, 3, 4), []], [4200, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (0, 0, 90, 10), (3, 4, 5, 6), []], [4300, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (50, 50, 0, 0), (3, 4, 5, 6), []], [5100, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (0, 20, 10, 70), (2, 3, 4), []], [5200, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (10, 70, 0, 20), (3, 4, 5, 6), []], [5300, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (5, 5, 5, 85), (3, 4, 5, 6), []], [9100, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (25, 25, 25, 25), (6, 7, 8, 9), []], [9200, 1, 5, 0, 99, 100, 4, (1, 5, 10, 40, 60, 80), (5, 5, 85, 5), (6, 7, 8, 9), []], [11000, 3, 15, 0, 0, 0, 4, (1, 5, 10, 40, 60, 80), (0, 0, 0, 100), (4, 5, 6), []], [11200, 10, 20, 0, 0, 0, 4, (1, 5, 10, 40, 60, 80), (0, 0, 0, 100), (4, 5, 6), []], [12000, 10, 20, 0, 0, 0, 4, (1, 5, 10, 40, 60, 80), (0, 0, 100, 0), (7, 8, 9), []], [13000, 10, 20, 0, 0, 0, 4, (1, 5, 10, 40, 60, 80), (0, 100, 0, 0), (8, 9, 10), []]]
     SUIT_HOOD_INFO_ZONE = 0
     SUIT_HOOD_INFO_MIN = 1
     SUIT_HOOD_INFO_MAX = 2
@@ -465,47 +44,22 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
     MIN_TAKEOVER_PATH_LEN = 2
     SUITS_ENTER_BUILDINGS = 1
     SUIT_BUILDING_NUM_SUITS = 1.5
-    SUIT_BUILDING_TIMEOUT = [None,
-     None,
-     None,
-     None,
-     None,
-     None,
-     72,
-     60,
-     48,
-     36,
-     24,
-     12,
-     6,
-     3,
-     1,
-     0.5]
+    SUIT_BUILDING_TIMEOUT = [
+     None, None, None, None, None, None, 72, 60, 48, 36, 24, 12, 6, 3, 1, 0.5]
     TOTAL_SUIT_BUILDING_PCT = 18 * CogdoPopFactor
-    BUILDING_HEIGHT_DISTRIBUTION = [14,
-     18,
-     25,
-     23,
-     20]
+    BUILDING_HEIGHT_DISTRIBUTION = [
+     14, 18, 25, 23, 20]
     TOTAL_BWEIGHT = 0
-    TOTAL_BWEIGHT_PER_TRACK = [0,
-     0,
-     0,
-     0]
-    TOTAL_BWEIGHT_PER_HEIGHT = [0,
-     0,
-     0,
-     0,
-     0]
+    TOTAL_BWEIGHT_PER_TRACK = [
+     0, 0, 0, 0]
+    TOTAL_BWEIGHT_PER_HEIGHT = [
+     0, 0, 0, 0, 0]
     for currHoodInfo in SuitHoodInfo:
         weight = currHoodInfo[SUIT_HOOD_INFO_BWEIGHT]
         tracks = currHoodInfo[SUIT_HOOD_INFO_TRACK]
         levels = currHoodInfo[SUIT_HOOD_INFO_LVL]
-        heights = [0,
-         0,
-         0,
-         0,
-         0]
+        heights = [
+         0, 0, 0, 0, 0]
         for level in levels:
             minFloors, maxFloors = SuitBuildingGlobals.SuitBuildingInfo[level - 1][0]
             for i in range(minFloors - 1, maxFloors):
@@ -550,15 +104,26 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
 
         self.currDesired = None
         self.baseNumSuits = (self.SuitHoodInfo[self.hoodInfoIdx][self.SUIT_HOOD_INFO_MIN] + self.SuitHoodInfo[self.hoodInfoIdx][self.SUIT_HOOD_INFO_MAX]) / 2
+        self.targetNumCogdos = 0
+        if simbase.air.wantCogdominiums:
+            self.targetNumCogdos = int(0.5 + self.SuitHoodInfo[self.hoodInfoIdx][self.SUIT_HOOD_INFO_BMIN] * self.CogdoRatio)
+            if self.MinimumOfOne:
+                self.targetNumCogdos = max(self.targetNumCogdos, 1)
         self.targetNumSuitBuildings = self.SuitHoodInfo[self.hoodInfoIdx][self.SUIT_HOOD_INFO_BMIN]
+        self.targetNumSuitBuildings -= self.targetNumCogdos
+        if self.MinimumOfOne:
+            self.targetNumSuitBuildings = max(self.targetNumSuitBuildings, 1)
         if ZoneUtil.isWelcomeValley(self.zoneId):
+            self.targetNumCogdos = 0
             self.targetNumSuitBuildings = 0
         self.pendingBuildingTracks = []
         self.pendingBuildingHeights = []
+        self.pendingCogdoHeights = []
         self.suitList = []
         self.numFlyInSuits = 0
         self.numBuildingSuits = 0
         self.numAttemptingTakeover = 0
+        self.numAttemptingCogdoTakeover = 0
         self.zoneInfo = {}
         self.zoneIdToPointMap = None
         self.cogHQDoors = []
@@ -603,6 +168,7 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
         self.numFlyInSuits = 0
         self.numBuildingSuits = 0
         self.numAttemptingTakeover = 0
+        self.numAttemptingCogdoTakeover = 0
 
     def delete(self):
         self.cleanup()
@@ -631,7 +197,8 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
             elif self.buildingSideDoors.has_key(blockNumber):
                 self.buildingSideDoors[blockNumber].append(p)
             else:
-                self.buildingSideDoors[blockNumber] = [p]
+                self.buildingSideDoors[blockNumber] = [
+                 p]
 
         for bldg in self.buildingMgr.getBuildings():
             if isinstance(bldg, HQBuildingAI.HQBuildingAI):
@@ -704,7 +271,8 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
                 if self.zoneIdToPointMap.has_key(zoneId):
                     self.zoneIdToPointMap[zoneId].append(point)
                 else:
-                    self.zoneIdToPointMap[zoneId] = [point]
+                    self.zoneIdToPointMap[zoneId] = [
+                     point]
 
         return self.zoneIdToPointMap
 
@@ -732,7 +300,7 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
 
         return pointList
 
-    def createNewSuit(self, blockNumbers, streetPoints, toonBlockTakeover = None, cogdoTakeover = None, minPathLen = None, maxPathLen = None, buildingHeight = None, suitLevel = None, suitType = None, suitTrack = None, suitName = None, skelecog = None, revives = None):
+    def createNewSuit(self, blockNumbers, streetPoints, toonBlockTakeover=None, cogdoTakeover=None, minPathLen=None, maxPathLen=None, buildingHeight=None, suitLevel=None, suitType=None, suitTrack=None, suitName=None, skelecog=None, revives=None):
         startPoint = None
         blockNumber = None
         if self.notify.getDebug():
@@ -774,23 +342,50 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
             newSuit.flyInSuit = 1
             newSuit.attemptingTakeover = self.newSuitShouldAttemptTakeover()
             if newSuit.attemptingTakeover:
-                if suitTrack == None and len(self.pendingBuildingTracks) > 0:
-                    suitTrack = self.pendingBuildingTracks[0]
-                    del self.pendingBuildingTracks[0]
-                    self.pendingBuildingTracks.append(suitTrack)
-                if buildingHeight == None and len(self.pendingBuildingHeights) > 0:
-                    buildingHeight = self.pendingBuildingHeights[0]
-                    del self.pendingBuildingHeights[0]
-                    self.pendingBuildingHeights.append(buildingHeight)
+                cogdosNeeded = self.countNumNeededCogdos()
+                bldgsNeeded = self.countNumNeededBuildings()
+                cogdosAvailable = cogdosNeeded - self.numAttemptingCogdoTakeover
+                bldgsAvailable = bldgsNeeded - (self.numAttemptingTakeover - self.numAttemptingCogdoTakeover)
+                totalAvailable = cogdosAvailable + bldgsAvailable
+                if cogdoTakeover is None:
+                    cogdoTakeover = False
+                    if simbase.air.wantCogdominiums:
+                        if totalAvailable > 0:
+                            r = random.randrange(totalAvailable)
+                            if r < cogdosAvailable:
+                                cogdoTakeover = True
+                newSuit.takeoverIsCogdo = cogdoTakeover
+                if newSuit.takeoverIsCogdo:
+                    pendingTracks = [
+                     's']
+                    pendingHeights = self.pendingCogdoHeights
+                else:
+                    pendingTracks = self.pendingBuildingTracks
+                    pendingHeights = self.pendingBuildingHeights
+                if suitTrack == None and len(pendingTracks) > 0:
+                    suitTrack = pendingTracks[0]
+                    del pendingTracks[0]
+                    pendingTracks.append(suitTrack)
+                if buildingHeight == None and len(pendingHeights) > 0:
+                    buildingHeight = pendingHeights[0]
+                    del pendingHeights[0]
+                    pendingHeights.append(buildingHeight)
+            else:
+                if cogdoTakeover and suitTrack == None:
+                    suitTrack = random.choice(['s'])
         if suitName == None:
-            suitName, skelecog = self.air.suitInvasionManager.getInvadingCog()
+            if not cogdoTakeover:
+                suitName, skelecog = self.air.suitInvasionManager.getInvadingCog()
             if suitName == None:
                 suitName = self.defaultSuitName
         if suitType == None and suitName != None:
             suitType = SuitDNA.getSuitType(suitName)
             suitTrack = SuitDNA.getSuitDept(suitName)
         if suitLevel == None and buildingHeight != None:
-            suitLevel = self.chooseSuitLevel(self.SuitHoodInfo[self.hoodInfoIdx][self.SUIT_HOOD_INFO_LVL], buildingHeight)
+            if not cogdoTakeover:
+                suitLevel = self.chooseSuitLevel(self.SuitHoodInfo[self.hoodInfoIdx][self.SUIT_HOOD_INFO_LVL], buildingHeight)
+            else:
+                suitLevel = self.SuitHoodInfo[self.hoodInfoIdx][self.SUIT_HOOD_INFO_LVL][-1] + 1
         suitLevel, suitType, suitTrack = self.pickLevelTypeAndTrack(suitLevel, suitType, suitTrack)
         newSuit.setupSuitDNA(suitLevel, suitType, suitTrack)
         newSuit.buildingHeight = buildingHeight
@@ -815,26 +410,37 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
             self.numBuildingSuits += 1
         if newSuit.attemptingTakeover:
             self.numAttemptingTakeover += 1
+            if newSuit.takeoverIsCogdo:
+                self.numAttemptingCogdoTakeover += 1
         return newSuit
 
     def countNumNeededBuildings(self):
         if not self.buildingMgr:
             return 0
-        numSuitBuildings = len(self.buildingMgr.getSuitBlocks())
+        numSuitBuildings = len(self.buildingMgr.getSuitBlocks()) - len(self.buildingMgr.getCogdoBlocks())
         numNeeded = self.targetNumSuitBuildings - numSuitBuildings
+        return numNeeded
+
+    def countNumNeededCogdos(self):
+        if not self.buildingMgr:
+            return 0
+        numCogdos = len(self.buildingMgr.getCogdoBlocks())
+        numNeeded = self.targetNumCogdos - numCogdos
         return numNeeded
 
     def newSuitShouldAttemptTakeover(self):
         if not self.SUITS_ENTER_BUILDINGS:
             return 0
         numNeeded = self.countNumNeededBuildings()
+        if simbase.air.wantCogdominiums:
+            numNeeded += self.countNumNeededCogdos()
         if self.numAttemptingTakeover >= numNeeded:
             self.pendingBuildingTracks = []
             return 0
         self.notify.debug('DSP %d is planning a takeover attempt in zone %d' % (self.getDoId(), self.zoneId))
         return 1
 
-    def chooseDestination(self, suit, startTime, toonBlockTakeover = None, cogdoTakeover = None, minPathLen = None, maxPathLen = None):
+    def chooseDestination(self, suit, startTime, toonBlockTakeover=None, cogdoTakeover=None, minPathLen=None, maxPathLen=None):
         possibles = []
         backup = []
         if cogdoTakeover is None:
@@ -947,12 +553,22 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
                 self.numBuildingSuits -= 1
             if suit.attemptingTakeover:
                 self.numAttemptingTakeover -= 1
+                if suit.takeoverIsCogdo:
+                    self.numAttemptingCogdoTakeover -= 1
         suit.requestDelete()
 
     def countTakeovers(self):
         count = 0
         for suit in self.suitList:
             if suit.attemptingTakeover:
+                count += 1
+
+        return count
+
+    def countCogdoTakeovers(self):
+        count = 0
+        for suit in self.suitList:
+            if suit.attemptingTakeover and suit.takeoverIsCogdo:
                 count += 1
 
         return count
@@ -992,11 +608,7 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
             buildingDeficit -= 1
 
         if self.notify.getDebug() and self.currDesired == None:
-            self.notify.debug('zone %d has %d of %d fly-in and %d of %d building suits.' % (self.zoneId,
-             self.numFlyInSuits,
-             targetFlyInNum,
-             self.numBuildingSuits,
-             targetBuildingNum))
+            self.notify.debug('zone %d has %d of %d fly-in and %d of %d building suits.' % (self.zoneId, self.numFlyInSuits, targetFlyInNum, self.numBuildingSuits, targetBuildingNum))
             if buildingDeficit != 0:
                 self.notify.debug('remaining deficit is %d.' % buildingDeficit)
         if self.buildingMgr:
@@ -1019,10 +631,7 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
 
                 if oldestAge > timeout:
                     self.notify.info('Street %d has %d buildings; reclaiming %0.2f-hour-old building.' % (self.zoneId, len(suitBuildings), oldestAge / 3600.0))
-                    oldest.b_setVictorList([0,
-                     0,
-                     0,
-                     0])
+                    oldest.b_setVictorList([0, 0, 0, 0])
                     oldest.updateSavedBy(None)
                     oldest.toonTakeOver()
         self.__waitForNextUpkeep()
@@ -1040,8 +649,9 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
         desiredNum = self.calcDesiredNumFlyInSuits()
         if desiredNum < min:
             self.suitCountAdjust = min - self.baseNumSuits
-        elif desiredNum > max:
-            self.suitCountAdjust = max - self.baseNumSuits
+        else:
+            if desiredNum > max:
+                self.suitCountAdjust = max - self.baseNumSuits
         self.__waitForNextAdjust()
         return Task.done
 
@@ -1053,39 +663,52 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
         building = self.buildingMgr.getBuilding(blockNumber)
         building.suitTakeOver(suitTrack, difficulty, buildingHeight)
 
-    def cogdoTakeOver(self, blockNumber, difficulty, buildingHeight):
-        if self.pendingBuildingHeights.count(buildingHeight) > 0:
-            self.pendingBuildingHeights.remove(buildingHeight)
+    def cogdoTakeOver(self, blockNumber, suitTrack, difficulty, buildingHeight):
+        if self.pendingCogdoHeights.count(buildingHeight) > 0:
+            self.pendingCogdoHeights.remove(buildingHeight)
         building = self.buildingMgr.getBuilding(blockNumber)
-        building.cogdoTakeOver(difficulty, buildingHeight)
+        building.cogdoTakeOver(suitTrack, difficulty, buildingHeight)
 
-    def recycleBuilding(self):
+    def recycleBuilding(self, isCogdo):
         bmin = self.SuitHoodInfo[self.hoodInfoIdx][self.SUIT_HOOD_INFO_BMIN]
         current = len(self.buildingMgr.getSuitBlocks())
-        if self.targetNumSuitBuildings > bmin and current <= self.targetNumSuitBuildings:
-            self.targetNumSuitBuildings -= 1
-            self.assignSuitBuildings(1)
+        target = self.targetNumSuitBuildings + self.targetNumCogdos
+        if target > bmin and current <= target:
+            if isCogdo:
+                if self.targetNumCogdos > choice(self.MinimumOfOne, 1, 0):
+                    self.targetNumCogdos -= 1
+                    self.assignCogdos(1)
+            elif self.targetNumSuitBuildings > choice(self.MinimumOfOne, 1, 0):
+                self.targetNumSuitBuildings -= 1
+                self.assignSuitBuildings(1)
 
     def assignInitialSuitBuildings(self):
         totalBuildings = 0
         targetSuitBuildings = 0
         actualSuitBuildings = 0
+        targetCogdos = 0
+        actualCogdos = 0
         for sp in self.air.suitPlanners.values():
             totalBuildings += len(sp.frontdoorPointList)
             targetSuitBuildings += sp.targetNumSuitBuildings
+            targetCogdos += sp.targetNumCogdos
             if sp.buildingMgr:
-                actualSuitBuildings += len(sp.buildingMgr.getSuitBlocks())
+                numCogdoBlocks = len(sp.buildingMgr.getCogdoBlocks())
+                actualSuitBuildings += len(sp.buildingMgr.getSuitBlocks()) - numCogdoBlocks
+                actualCogdos += numCogdoBlocks
 
         wantedSuitBuildings = int(totalBuildings * self.TOTAL_SUIT_BUILDING_PCT / 100)
-        self.notify.debug('Want %d out of %d total suit buildings; we currently have %d assigned, %d actual.' % (wantedSuitBuildings,
-         totalBuildings,
-         targetSuitBuildings,
-         actualSuitBuildings))
+        if simbase.air.wantCogdominiums:
+            wantedCogdos = int(wantedSuitBuildings * self.CogdoRatio)
+            wantedSuitBuildings -= wantedCogdos
+        else:
+            wantedCogdos = 0
+        self.notify.debug('Want %d out of %d total suit buildings; we currently have %d assigned, %d actual.' % (wantedSuitBuildings, totalBuildings, targetSuitBuildings, actualSuitBuildings))
         if actualSuitBuildings > 0:
             numReassigned = 0
             for sp in self.air.suitPlanners.values():
                 if sp.buildingMgr:
-                    numBuildings = len(sp.buildingMgr.getSuitBlocks())
+                    numBuildings = len(sp.buildingMgr.getSuitBlocks()) - len(sp.buildingMgr.getCogdoBlocks())
                 else:
                     numBuildings = 0
                 if numBuildings > sp.targetNumSuitBuildings:
@@ -1096,22 +719,43 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
 
             if numReassigned > 0:
                 self.notify.debug('Assigned %d buildings where suit buildings already existed.' % numReassigned)
+        if simbase.air.wantCogdominiums:
+            if actualCogdos > 0:
+                numReassigned = 0
+                for sp in self.air.suitPlanners.values():
+                    if sp.buildingMgr:
+                        numCogdos = len(sp.buildingMgr.getCogdoBlocks())
+                    else:
+                        numCogdos = 0
+                    if numCogdos > sp.targetNumCogdos:
+                        more = numCogdos - sp.targetNumCogdos
+                        sp.targetNumCogdos += more
+                        targetCogdos += more
+                        numReassigned += more
+
+                if numReassigned > 0:
+                    self.notify.debug('Assigned %d cogdos where cogdos already existed.' % numReassigned)
         if wantedSuitBuildings > targetSuitBuildings:
             additionalBuildings = wantedSuitBuildings - targetSuitBuildings
             self.assignSuitBuildings(additionalBuildings)
-        elif wantedSuitBuildings < targetSuitBuildings:
-            extraBuildings = targetSuitBuildings - wantedSuitBuildings
-            self.unassignSuitBuildings(extraBuildings)
+        else:
+            if wantedSuitBuildings < targetSuitBuildings:
+                extraBuildings = targetSuitBuildings - wantedSuitBuildings
+                self.unassignSuitBuildings(extraBuildings)
+        if simbase.air.wantCogdominiums:
+            if wantedCogdos > targetCogdos:
+                additionalCogdos = wantedCogdos - targetCogdos
+                self.assignCogdos(additionalCogdos)
+            elif wantedCogdos < targetCogdos:
+                extraCogdos = targetCogdos - wantedCogdos
+                self.unassignCogdos(extraCogdos)
 
     def assignSuitBuildings(self, numToAssign):
         hoodInfo = self.SuitHoodInfo[:]
         totalWeight = self.TOTAL_BWEIGHT
         totalWeightPerTrack = self.TOTAL_BWEIGHT_PER_TRACK[:]
         totalWeightPerHeight = self.TOTAL_BWEIGHT_PER_HEIGHT[:]
-        numPerTrack = {'c': 0,
-         'l': 0,
-         'm': 0,
-         's': 0}
+        numPerTrack = {'c': 0, 'l': 0, 'm': 0, 's': 0}
         for sp in self.air.suitPlanners.values():
             sp.countNumBuildingsPerTrack(numPerTrack)
             numPerTrack['c'] += sp.pendingBuildingTracks.count('c')
@@ -1119,11 +763,7 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
             numPerTrack['m'] += sp.pendingBuildingTracks.count('m')
             numPerTrack['s'] += sp.pendingBuildingTracks.count('s')
 
-        numPerHeight = {0: 0,
-         1: 0,
-         2: 0,
-         3: 0,
-         4: 0}
+        numPerHeight = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
         for sp in self.air.suitPlanners.values():
             sp.countNumBuildingsPerHeight(numPerHeight)
             numPerHeight[0] += sp.pendingBuildingHeights.count(0)
@@ -1140,7 +780,8 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
                     track = SuitDNA.suitDepts[trackIndex]
                     count = numPerTrack[track]
                     if smallestCount == None or count < smallestCount:
-                        smallestTracks = [track]
+                        smallestTracks = [
+                         track]
                         smallestCount = count
                     elif count == smallestCount:
                         smallestTracks.append(track)
@@ -1156,7 +797,8 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
                 if totalWeightPerHeight[height]:
                     count = float(numPerHeight[height]) / float(self.BUILDING_HEIGHT_DISTRIBUTION[height])
                     if smallestCount == None or count < smallestCount:
-                        smallestHeights = [height]
+                        smallestHeights = [
+                         height]
                         smallestCount = count
                     elif count == smallestCount:
                         smallestHeights.append(height)
@@ -1165,12 +807,7 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
                 self.notify.info('No more room for buildings, with %s still to assign.' % numToAssign)
                 return
             buildingHeight = random.choice(smallestHeights)
-            self.notify.info('Existing buildings are (%s, %s), choosing from (%s, %s), chose %s, %s.' % (self.formatNumSuitsPerTrack(numPerTrack),
-             self.formatNumSuitsPerTrack(numPerHeight),
-             smallestTracks,
-             smallestHeights,
-             buildingTrack,
-             buildingHeight))
+            self.notify.info('Existing buildings are (%s, %s), choosing from (%s, %s), chose %s, %s.' % (self.formatNumSuitsPerTrack(numPerTrack), self.formatNumSuitsPerTrack(numPerHeight), smallestTracks, smallestHeights, buildingTrack, buildingHeight))
             repeat = 1
             while repeat and buildingTrack != None and buildingHeight != None:
                 if len(hoodInfo) == 0:
@@ -1181,12 +818,14 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
                 zoneId = currHoodInfo[self.SUIT_HOOD_INFO_ZONE]
                 if self.air.suitPlanners.has_key(zoneId):
                     sp = self.air.suitPlanners[zoneId]
-                    numTarget = sp.targetNumSuitBuildings
+                    numCogdos = sp.targetNumCogdos
+                    numBldgs = sp.targetNumSuitBuildings
                     numTotalBuildings = len(sp.frontdoorPointList)
                 else:
-                    numTarget = 0
+                    numCogdos = 0
+                    numBldgs = 0
                     numTotalBuildings = 0
-                if numTarget >= currHoodInfo[self.SUIT_HOOD_INFO_BMAX] or numTarget >= numTotalBuildings:
+                if numCogdos + numBldgs >= currHoodInfo[self.SUIT_HOOD_INFO_BMAX] or numCogdos + numBldgs >= numTotalBuildings:
                     self.notify.info('Zone %d has enough buildings.' % zoneId)
                     hoodInfo.remove(currHoodInfo)
                     weight = currHoodInfo[self.SUIT_HOOD_INFO_BWEIGHT]
@@ -1233,12 +872,16 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
                 zoneId = currHoodInfo[self.SUIT_HOOD_INFO_ZONE]
                 if self.air.suitPlanners.has_key(zoneId):
                     sp = self.air.suitPlanners[zoneId]
-                    numTarget = sp.targetNumSuitBuildings
+                    numCogdos = sp.targetNumCogdos
+                    numBldgs = sp.targetNumSuitBuildings
                     numTotalBuildings = len(sp.frontdoorPointList)
                 else:
-                    numTarget = 0
+                    numCogdos = 0
+                    numBldgs = 0
                     numTotalBuildings = 0
-                if numTarget <= currHoodInfo[self.SUIT_HOOD_INFO_BMIN]:
+                overallStrapped = numCogdos + numBldgs <= currHoodInfo[self.SUIT_HOOD_INFO_BMIN]
+                bldgStrapped = numBldgs <= choice(self.MinimumOfOne, 1, 0)
+                if overallStrapped or bldgStrapped:
                     self.notify.info("Zone %d can't remove any more buildings." % zoneId)
                     hoodInfo.remove(currHoodInfo)
                     totalWeight -= currHoodInfo[self.SUIT_HOOD_INFO_BWEIGHT]
@@ -1246,6 +889,67 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
 
             self.notify.info('Unassigning building from zone %d.' % zoneId)
             sp.targetNumSuitBuildings -= 1
+            numToAssign -= 1
+
+    def assignCogdos(self, numToAssign):
+        hoodInfo = self.SuitHoodInfo[:]
+        totalWeight = self.TOTAL_BWEIGHT
+        while numToAssign > 0:
+            while 1:
+                if len(hoodInfo) == 0:
+                    self.notify.warning('No more streets can have cogdos, with %d cogdos unassigned!' % numToAssign)
+                    return
+                currHoodInfo = self.chooseStreetNoPreference(hoodInfo, totalWeight)
+                zoneId = currHoodInfo[self.SUIT_HOOD_INFO_ZONE]
+                if self.air.suitPlanners.has_key(zoneId):
+                    sp = self.air.suitPlanners[zoneId]
+                    numCogdos = sp.targetNumCogdos
+                    numBldgs = sp.targetNumSuitBuildings
+                    numTotalBuildings = len(sp.frontdoorPointList)
+                else:
+                    numCogdos = 0
+                    numBldgs = 0
+                    numTotalBuildings = 0
+                if numCogdos + numBldgs >= currHoodInfo[self.SUIT_HOOD_INFO_BMAX] or numCogdos + numBldgs >= numTotalBuildings:
+                    self.notify.info('Zone %d has enough cogdos.' % zoneId)
+                    hoodInfo.remove(currHoodInfo)
+                    weight = currHoodInfo[self.SUIT_HOOD_INFO_BWEIGHT]
+                    totalWeight -= weight
+                    continue
+                break
+
+            sp.targetNumCogdos += 1
+            sp.pendingCogdoHeights.append(DistributedBuildingAI.FieldOfficeNumFloors)
+            self.notify.info('Assigning cogdo to zone %d' % zoneId)
+            numToAssign -= 1
+
+    def unassignCogdos(self, numToAssign):
+        hoodInfo = self.SuitHoodInfo[:]
+        totalWeight = self.TOTAL_BWEIGHT
+        while numToAssign > 0:
+            while 1:
+                currHoodInfo = self.chooseStreetNoPreference(hoodInfo, totalWeight)
+                zoneId = currHoodInfo[self.SUIT_HOOD_INFO_ZONE]
+                if self.air.suitPlanners.has_key(zoneId):
+                    sp = self.air.suitPlanners[zoneId]
+                    numCogdos = sp.targetNumCogdos
+                    numBldgs = sp.targetNumSuitBuildings
+                    numTotalBuildings = len(sp.frontdoorPointList)
+                else:
+                    numCogdos = 0
+                    numBldgs = 0
+                    numTotalBuildings = 0
+                overallStrapped = numCogdos + numBldgs <= currHoodInfo[self.SUIT_HOOD_INFO_BMIN]
+                cogdoStrapped = numCogdos <= choice(self.MinimumOfOne, 1, 0)
+                if overallStrapped or cogdoStrapped:
+                    self.notify.info("Zone %s can't remove any more cogdos." % zoneId)
+                    hoodInfo.remove(currHoodInfo)
+                    totalWeight -= currHoodInfo[self.SUIT_HOOD_INFO_BWEIGHT]
+                    continue
+                break
+
+            self.notify.info('Unassigning cogdo from zone %s.' % zoneId)
+            sp.targetNumCogdos -= 1
             numToAssign -= 1
 
     def chooseStreetNoPreference(self, hoodInfo, totalWeight):
@@ -1311,15 +1015,14 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
             return 0
         if toon:
             if hasattr(toon, 'doId'):
-                print ('Setting toonID ', toonId)
+                print (
+                 'Setting toonID ', toonId)
                 toon.b_setBattleId(toonId)
         pos = self.battlePosDict[canonicalZoneId]
         interactivePropTrackBonus = -1
-        if simbase.config.GetBool('props-buff-battles', False) and self.cellToGagBonusDict.has_key(canonicalZoneId):
+        if simbase.config.GetBool('props-buff-battles', True) and self.cellToGagBonusDict.has_key(canonicalZoneId):
             tentativeBonusTrack = self.cellToGagBonusDict[canonicalZoneId]
-            trackToHolidayDict = {ToontownBattleGlobals.SQUIRT_TRACK: ToontownGlobals.HYDRANTS_BUFF_BATTLES,
-             ToontownBattleGlobals.THROW_TRACK: ToontownGlobals.MAILBOXES_BUFF_BATTLES,
-             ToontownBattleGlobals.HEAL_TRACK: ToontownGlobals.TRASHCANS_BUFF_BATTLES}
+            trackToHolidayDict = {ToontownBattleGlobals.SQUIRT_TRACK: ToontownGlobals.HYDRANTS_BUFF_BATTLES, ToontownBattleGlobals.THROW_TRACK: ToontownGlobals.MAILBOXES_BUFF_BATTLES, ToontownBattleGlobals.HEAL_TRACK: ToontownGlobals.TRASHCANS_BUFF_BATTLES}
             if tentativeBonusTrack in trackToHolidayDict:
                 holidayId = trackToHolidayDict[tentativeBonusTrack]
                 if simbase.air.holidayManager.isHolidayRunning(holidayId) and simbase.air.holidayManager.getCurPhase(holidayId) >= 1:
@@ -1403,7 +1106,7 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
         self.battleList.append([suit.zoneId, pointList])
         return 1
 
-    def zoneChange(self, suit, oldZone, newZone = None):
+    def zoneChange(self, suit, oldZone, newZone=None):
         if self.zoneInfo.has_key(oldZone) and suit in self.zoneInfo[oldZone]:
             self.zoneInfo[oldZone].remove(suit)
         if newZone != None:
@@ -1428,17 +1131,14 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
     def buildingListQuery(self):
         buildingDict = {}
         self.countNumBuildingsPerTrack(buildingDict)
-        buildingList = [0,
-         0,
-         0,
-         0]
+        buildingList = [0, 0, 0, 0]
         for dept in SuitDNA.suitDepts:
             if buildingDict.has_key(dept):
                 buildingList[SuitDNA.suitDepts.index(dept)] = buildingDict[dept]
 
         self.sendUpdateToAvatarId(self.air.getAvatarIdFromSender(), 'buildingListResponse', [buildingList])
 
-    def pickLevelTypeAndTrack(self, level = None, type = None, track = None):
+    def pickLevelTypeAndTrack(self, level=None, type=None, track=None):
         if level == None:
             level = random.choice(self.SuitHoodInfo[self.hoodInfoIdx][self.SUIT_HOOD_INFO_LVL])
         if type == None:
@@ -1449,4 +1149,33 @@ class DistributedSuitPlannerAI(DistributedObjectAI.DistributedObjectAI, SuitPlan
         if track == None:
             track = SuitDNA.suitDepts[SuitBattleGlobals.pickFromFreqList(self.SuitHoodInfo[self.hoodInfoIdx][self.SUIT_HOOD_INFO_TRACK])]
         self.notify.debug('pickLevelTypeAndTrack: %d %d %s' % (level, type, track))
-        return (level, type, track)
+        return (
+         level, type, track)
+
+    @classmethod
+    def dump(cls):
+        s = ''
+        totalBldgs = 0
+        totalCogdos = 0
+        targetTotalBldgs = 0
+        targetTotalCogdos = 0
+        for index in range(len(cls.SuitHoodInfo)):
+            currHoodInfo = cls.SuitHoodInfo[index]
+            zoneId, min, max, bmin, bmax, bweight, smax, jchance, track, lvl, heights = currHoodInfo
+            sp = simbase.air.suitPlanners[zoneId]
+            targetCogdos = sp.targetNumCogdos
+            targetBldgs = sp.targetNumSuitBuildings
+            bm = simbase.air.buildingManagers.get(zoneId)
+            if bm:
+                numCogdos = len(bm.getCogdoBlocks())
+                numBldgs = len(bm.getSuitBlocks()) - numCogdos
+                s += '  %s: %2s/%2s buildings, %2s/%2s cogdos\n' % (zoneId, numBldgs, targetBldgs, numCogdos, targetCogdos)
+                totalBldgs += numBldgs
+                totalCogdos += numCogdos
+                targetTotalBldgs += targetBldgs
+                targetTotalCogdos += targetCogdos
+
+        header = '%s\n' % (cls.__name__,)
+        header += ' %s/%s buildings, %s/%s cogdos\n' % (totalBldgs, targetTotalBldgs, totalCogdos, targetTotalCogdos)
+        s = header + s
+        print s
