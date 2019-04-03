@@ -9,22 +9,10 @@ from direct.fsm.FSM import FSM
 
 class DistributedElevatorFSMAI(DistributedObjectAI.DistributedObjectAI, FSM):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedElevatorFSMAI')
-    defaultTransitions = {'Off': ['Opening', 'Closed'],
-     'Opening': ['WaitEmpty',
-                 'WaitCountdown',
-                 'Opening',
-                 'Closing'],
-     'WaitEmpty': ['WaitCountdown', 'Closing'],
-     'WaitCountdown': ['WaitEmpty', 'AllAboard', 'Closing'],
-     'AllAboard': ['WaitEmpty', 'Closing'],
-     'Closing': ['Closed',
-                 'WaitEmpty',
-                 'Closing',
-                 'Opening'],
-     'Closed': ['Opening']}
+    defaultTransitions = {'Off': ['Opening', 'Closed'], 'Opening': ['WaitEmpty', 'WaitCountdown', 'Opening', 'Closing'], 'WaitEmpty': ['WaitCountdown', 'Closing'], 'WaitCountdown': ['WaitEmpty', 'AllAboard', 'Closing'], 'AllAboard': ['WaitEmpty', 'Closing'], 'Closing': ['Closed', 'WaitEmpty', 'Closing', 'Opening'], 'Closed': ['Opening']}
     id = 0
 
-    def __init__(self, air, bldg, numSeats = 4, antiShuffle = 0, minLaff = 0):
+    def __init__(self, air, bldg, numSeats=4, antiShuffle=0, minLaff=0):
         DistributedObjectAI.DistributedObjectAI.__init__(self, air)
         FSM.__init__(self, 'Elevator_%s_FSM' % self.id)
         self.type = ELEVATOR_NORMAL
@@ -89,13 +77,13 @@ class DistributedElevatorFSMAI(DistributedObjectAI.DistributedObjectAI, FSM):
 
         return openSeats
 
-    def rejectingBoardersHandler(self, avId, reason = 0):
+    def rejectingBoardersHandler(self, avId, reason=0):
         self.rejectBoarder(avId, reason)
 
-    def rejectBoarder(self, avId, reason = 0):
+    def rejectBoarder(self, avId, reason=0):
         self.sendUpdateToAvatarId(avId, 'rejectBoard', [avId, reason])
 
-    def acceptingBoardersHandler(self, avId, reason = 0):
+    def acceptingBoardersHandler(self, avId, reason=0):
         self.notify.debug('acceptingBoardersHandler')
         seatIndex = self.findAvailableSeat()
         if seatIndex == None:
@@ -110,7 +98,8 @@ class DistributedElevatorFSMAI(DistributedObjectAI.DistributedObjectAI, FSM):
             return
         self.seats[seatIndex] = avId
         self.timeOfBoarding = globalClock.getRealTime()
-        self.sendUpdate('fillSlot' + str(seatIndex), [avId])
+        self.sendUpdate('fillSlot' + str(seatIndex), [
+         avId])
         return
 
     def rejectingExitersHandler(self, avId):
@@ -123,7 +112,8 @@ class DistributedElevatorFSMAI(DistributedObjectAI.DistributedObjectAI, FSM):
         self.acceptExiter(avId)
 
     def clearEmptyNow(self, seatIndex):
-        self.sendUpdate('emptySlot' + str(seatIndex), [0, 0, globalClockDelta.getRealNetworkTime()])
+        self.sendUpdate('emptySlot' + str(seatIndex), [
+         0, 0, globalClockDelta.getRealNetworkTime()])
 
     def clearFullNow(self, seatIndex):
         avId = self.seats[seatIndex]
@@ -131,7 +121,8 @@ class DistributedElevatorFSMAI(DistributedObjectAI.DistributedObjectAI, FSM):
             self.notify.warning('Clearing an empty seat index: ' + str(seatIndex) + ' ... Strange...')
         else:
             self.seats[seatIndex] = None
-            self.sendUpdate('fillSlot' + str(seatIndex), [0])
+            self.sendUpdate('fillSlot' + str(seatIndex), [
+             0])
             self.ignore(self.air.getAvatarExitEvent(avId))
         return
 
@@ -157,7 +148,8 @@ class DistributedElevatorFSMAI(DistributedObjectAI.DistributedObjectAI, FSM):
             return
         av = self.air.doId2do.get(avId)
         if av:
-            newArgs = (avId,) + args
+            newArgs = (
+             avId,) + args
             boardResponse = self.checkBoard(av)
             newArgs = (avId,) + args + (boardResponse,)
             if boardResponse == 0:
@@ -174,7 +166,8 @@ class DistributedElevatorFSMAI(DistributedObjectAI.DistributedObjectAI, FSM):
             avId = self.air.getAvatarIdFromSender()
             av = self.air.doId2do.get(avId)
             if av:
-                newArgs = (avId,) + args
+                newArgs = (
+                 avId,) + args
                 if self.accepting:
                     self.acceptingExitersHandler(*newArgs)
                 else:

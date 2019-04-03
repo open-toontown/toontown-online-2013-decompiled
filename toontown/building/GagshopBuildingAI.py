@@ -1,9 +1,6 @@
 from pandac.PandaModules import *
 from direct.directnotify import DirectNotifyGlobal
-import DistributedDoorAI
-import DistributedGagshopInteriorAI
-import FADoorCodes
-import DoorTypes
+import DistributedDoorAI, DistributedGagshopInteriorAI, FADoorCodes, DoorTypes
 from toontown.toon import NPCToons
 from toontown.quest import Quests
 

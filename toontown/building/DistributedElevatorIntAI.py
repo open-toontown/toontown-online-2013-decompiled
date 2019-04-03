@@ -2,8 +2,7 @@ from otp.ai.AIBase import *
 from toontown.toonbase import ToontownGlobals
 from direct.distributed.ClockDelta import *
 from ElevatorConstants import *
-import copy
-import DistributedElevatorAI
+import copy, DistributedElevatorAI
 from direct.fsm import ClassicFSM
 from direct.fsm import State
 from direct.task import Task
@@ -27,7 +26,7 @@ class DistributedElevatorIntAI(DistributedElevatorAI.DistributedElevatorAI):
             result = DistributedElevatorAI.DistributedElevatorAI.checkBoard(self, av)
         return result
 
-    def acceptBoarder(self, avId, seatIndex, wantBoardingShow = 0):
+    def acceptBoarder(self, avId, seatIndex, wantBoardingShow=0):
         DistributedElevatorAI.DistributedElevatorAI.acceptBoarder(self, avId, seatIndex, wantBoardingShow)
         self.__closeIfNecessary()
 
@@ -44,10 +43,11 @@ class DistributedElevatorIntAI(DistributedElevatorAI.DistributedElevatorAI):
         avIdCount = self.avIds.count(avId)
         if avIdCount == 1:
             self.avIds.remove(avId)
-        elif avIdCount == 0:
-            self.notify.warning("Strange... %d exited unexpectedly, but I don't have them on my list." % avId)
         else:
-            self.notify.error('This list is screwed up! %s' % self.avIds)
+            if avIdCount == 0:
+                self.notify.warning("Strange... %d exited unexpectedly, but I don't have them on my list." % avId)
+            else:
+                self.notify.error('This list is screwed up! %s' % self.avIds)
         if seatIndex == None:
             self.notify.debug('%d is not boarded, but exited' % avId)
         else:
@@ -62,10 +62,8 @@ class DistributedElevatorIntAI(DistributedElevatorAI.DistributedElevatorAI):
             pass
         else:
             self.clearFullNow(seatIndex)
-            self.sendUpdate('emptySlot' + str(seatIndex), [avId,
-             0,
-             globalClockDelta.getRealNetworkTime(),
-             self.countdownTime])
+            self.sendUpdate('emptySlot' + str(seatIndex), [
+             avId, 0, globalClockDelta.getRealNetworkTime(), self.countdownTime])
             taskMgr.doMethodLater(TOON_EXIT_ELEVATOR_TIME, self.clearEmptyNow, self.uniqueName('clearEmpty-%s' % seatIndex), extraArgs=(seatIndex,))
         return
 
@@ -100,10 +98,7 @@ class DistributedElevatorIntAI(DistributedElevatorAI.DistributedElevatorAI):
 
     def allAboard(self):
         if len(self.avIds) == 0:
-            self.bldg.handleAllAboard([None,
-             None,
-             None,
-             None])
+            self.bldg.handleAllAboard([None, None, None, None])
         else:
             self.fsm.request('allAboard')
         return

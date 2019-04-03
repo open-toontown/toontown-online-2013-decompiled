@@ -3,18 +3,18 @@ import random
 from toontown.suit import SuitDNA
 from direct.directnotify import DirectNotifyGlobal
 from toontown.suit import DistributedSuitAI
-import SuitBuildingGlobals
-import types
+import SuitBuildingGlobals, types
 
 class SuitPlannerInteriorAI:
     notify = DirectNotifyGlobal.directNotify.newCategory('SuitPlannerInteriorAI')
 
-    def __init__(self, numFloors, bldgLevel, bldgTrack, zone):
+    def __init__(self, numFloors, bldgLevel, bldgTrack, zone, respectInvasions=1):
+        self.dbg_nSuits1stRound = config.GetBool('n-suits-1st-round', 0)
         self.dbg_4SuitsPerFloor = config.GetBool('4-suits-per-floor', 0)
         self.dbg_1SuitPerFloor = config.GetBool('1-suit-per-floor', 0)
         self.zoneId = zone
         self.numFloors = numFloors
-        self.respectInvasions = 1
+        self.respectInvasions = respectInvasions
         dbg_defaultSuitName = simbase.config.GetString('suit-type', 'random')
         if dbg_defaultSuitName == 'random':
             self.dbg_defaultSuitType = None
@@ -41,10 +41,11 @@ class SuitPlannerInteriorAI:
             infoDict = {}
             lvls = self.__genLevelList(bldgLevel, currFloor, numFloors)
             activeDicts = []
-            if self.dbg_4SuitsPerFloor:
-                numActive = 4
+            maxActive = min(4, len(lvls))
+            if self.dbg_nSuits1stRound:
+                numActive = min(self.dbg_nSuits1stRound, maxActive)
             else:
-                numActive = random.randint(1, min(4, len(lvls)))
+                numActive = random.randint(1, maxActive)
             if currFloor + 1 == numFloors and len(lvls) > 1:
                 origBossSpot = len(lvls) - 1
                 if numActive == 1:
@@ -96,11 +97,9 @@ class SuitPlannerInteriorAI:
         bldgInfo = SuitBuildingGlobals.SuitBuildingInfo[bldgLevel]
         if self.dbg_1SuitPerFloor:
             return [1]
-        elif self.dbg_4SuitsPerFloor:
-            return [5,
-             6,
-             7,
-             10]
+        else:
+            if self.dbg_4SuitsPerFloor:
+                return [5, 6, 7, 10]
         lvlPoolRange = bldgInfo[SuitBuildingGlobals.SUIT_BLDG_INFO_LVL_POOL]
         maxFloors = bldgInfo[SuitBuildingGlobals.SUIT_BLDG_INFO_FLOORS][1]
         lvlPoolMults = bldgInfo[SuitBuildingGlobals.SUIT_BLDG_INFO_LVL_POOL_MULTS]
@@ -138,7 +137,7 @@ class SuitPlannerInteriorAI:
         suit.setLevel(suitLevel)
         return skeleton
 
-    def __genSuitObject(self, suitZone, suitType, bldgTrack, suitLevel, revives = 0):
+    def __genSuitObject(self, suitZone, suitType, bldgTrack, suitLevel, revives=0):
         newSuit = DistributedSuitAI.DistributedSuitAI(simbase.air, None)
         skel = self.__setupSuitInfo(newSuit, bldgTrack, suitLevel, suitType)
         if skel:

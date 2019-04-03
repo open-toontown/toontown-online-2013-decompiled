@@ -16,7 +16,11 @@ class DistributedToonInteriorAI(DistributedObjectAI.DistributedObjectAI):
         self.zoneId = zoneId
         self.building = building
         self.npcs = NPCToons.createNpcsInZone(air, zoneId)
-        self.fsm = ClassicFSM.ClassicFSM('DistributedToonInteriorAI', [State.State('toon', self.enterToon, self.exitToon, ['beingTakenOver']), State.State('beingTakenOver', self.enterBeingTakenOver, self.exitBeingTakenOver, []), State.State('off', self.enterOff, self.exitOff, [])], 'toon', 'off')
+        self.fsm = ClassicFSM.ClassicFSM('DistributedToonInteriorAI', [
+         State.State('toon', self.enterToon, self.exitToon, [
+          'beingTakenOver']),
+         State.State('beingTakenOver', self.enterBeingTakenOver, self.exitBeingTakenOver, []),
+         State.State('off', self.enterOff, self.exitOff, [])], 'toon', 'off')
         self.fsm.enterInitialState()
 
     def delete(self):
@@ -30,14 +34,16 @@ class DistributedToonInteriorAI(DistributedObjectAI.DistributedObjectAI):
         DistributedObjectAI.DistributedObjectAI.delete(self)
 
     def getZoneIdAndBlock(self):
-        r = [self.zoneId, self.block]
+        r = [
+         self.zoneId, self.block]
         return r
 
     def getToonData(self):
         return cPickle.dumps(self.building.savedBy, 1)
 
     def getState(self):
-        r = [self.fsm.getCurrentState().getName(), globalClockDelta.getRealNetworkTime()]
+        r = [
+         self.fsm.getCurrentState().getName(), globalClockDelta.getRealNetworkTime()]
         return r
 
     def setState(self, state):

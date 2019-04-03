@@ -21,7 +21,8 @@ class DistributedHQInteriorAI(DistributedObjectAI.DistributedObjectAI):
         DistributedObjectAI.DistributedObjectAI.delete(self)
 
     def getZoneIdAndBlock(self):
-        r = [self.zoneId, self.block]
+        r = [
+         self.zoneId, self.block]
         return r
 
     def leaderboardChanged(self):

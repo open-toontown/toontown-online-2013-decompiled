@@ -2,16 +2,12 @@ import os
 from direct.task.Task import Task
 import cPickle
 from otp.ai.AIBaseGlobal import *
-import DistributedBuildingAI
-import HQBuildingAI
-import GagshopBuildingAI
-import PetshopBuildingAI
+import DistributedBuildingAI, HQBuildingAI, GagshopBuildingAI, PetshopBuildingAI
 from toontown.building.KartShopBuildingAI import KartShopBuildingAI
 from toontown.building import DistributedAnimBuildingAI
 from direct.directnotify import DirectNotifyGlobal
 from toontown.hood import ZoneUtil
-import time
-import random
+import time, random
 
 class DistributedBuildingMgrAI:
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedBuildingMgrAI')
@@ -52,6 +48,17 @@ class DistributedBuildingMgrAI:
         blocks = []
         for i in self.__buildings.values():
             if i.isSuitBlock():
+                blocks.append(i.getBlock()[0])
+
+        return blocks
+
+    def isCogdoBlock(self, blockNumber):
+        return self.__buildings[blockNumber].isCogdo()
+
+    def getCogdoBlocks(self):
+        blocks = []
+        for i in self.__buildings.values():
+            if i.isCogdo():
                 blocks.append(i.getBlock()[0])
 
         return blocks
@@ -112,12 +119,8 @@ class DistributedBuildingMgrAI:
             else:
                 blocks.append(blockNumber)
 
-        return (blocks,
-         hqBlocks,
-         gagshopBlocks,
-         petshopBlocks,
-         kartshopBlocks,
-         animBldgBlocks)
+        return (
+         blocks, hqBlocks, gagshopBlocks, petshopBlocks, kartshopBlocks, animBldgBlocks)
 
     def findAllLandmarkBuildings(self):
         buildings = self.load()
@@ -144,7 +147,7 @@ class DistributedBuildingMgrAI:
 
         return
 
-    def newBuilding(self, blockNumber, blockData = None):
+    def newBuilding(self, blockNumber, blockData=None):
         building = DistributedBuildingAI.DistributedBuildingAI(self.air, blockNumber, self.branchID, self.trophyMgr)
         building.generateWithRequired(self.branchID)
         if blockData:
@@ -161,6 +164,7 @@ class DistributedBuildingMgrAI:
                 building.setState('suit')
             elif blockData['state'] == 'cogdo':
                 if simbase.air.wantCogdominiums:
+                    building.numFloors = DistributedBuildingAI.DistributedBuildingAI.FieldOfficeNumFloors
                     building.setState('cogdo')
             else:
                 building.setState('toon')
@@ -169,7 +173,7 @@ class DistributedBuildingMgrAI:
         self.__buildings[blockNumber] = building
         return building
 
-    def newAnimBuilding(self, blockNumber, blockData = None):
+    def newAnimBuilding(self, blockNumber, blockData=None):
         building = DistributedAnimBuildingAI.DistributedAnimBuildingAI(self.air, blockNumber, self.branchID, self.trophyMgr)
         building.generateWithRequired(self.branchID)
         if blockData:
@@ -230,7 +234,7 @@ class DistributedBuildingMgrAI:
         f = '%s%s_%d.buildings' % (self.serverDatafolder, self.shard, self.branchID)
         return f
 
-    def saveTo(self, file, block = None):
+    def saveTo(self, file, block=None):
         if block:
             pickleData = block.getPickleData()
             cPickle.dump(pickleData, file)
@@ -278,6 +282,7 @@ class DistributedBuildingMgrAI:
             while 1:
                 pickleData = cPickle.load(file)
                 blocks[int(pickleData['block'])] = pickleData
+
         except EOFError:
             pass
 
