@@ -13,25 +13,17 @@ class DistributedPicnicTableAI(DistributedNodeAI):
         DistributedNodeAI.__init__(self, air)
         self.name = name
         self.air = air
-        self.seats = [None,
-         None,
-         None,
-         None,
-         None,
-         None]
+        self.seats = [
+         None, None, None, None, None, None]
         self.setPos(x, y, z)
         self.setHpr(h, p, r)
         self.playersSitting = 0
-        self.myPos = (x, y, z)
+        self.myPos = (
+         x, y, z)
         self.myHpr = (h, p, r)
         self.playerIdList = []
         self.checkersZoneId = None
-        self.generateOtpObject(air.districtId, zone, optionalFields=['setX',
-         'setY',
-         'setZ',
-         'setH',
-         'setP',
-         'setR'])
+        self.generateOtpObject(air.districtId, zone, optionalFields=['setX', 'setY', 'setZ', 'setH', 'setP', 'setR'])
         self.observers = []
         self.allowPickers = []
         self.hasPicked = False
@@ -120,16 +112,8 @@ class DistributedPicnicTableAI(DistributedNodeAI):
         self.timeOfBoarding = globalClock.getRealTime()
         if self.game:
             self.game.informGameOfPlayer()
-        self.sendUpdate('fillSlot', [avId,
-         seatIndex,
-         x,
-         y,
-         z,
-         h,
-         p,
-         r,
-         globalClockDelta.localToNetworkTime(self.timeOfBoarding),
-         self.doId])
+        self.sendUpdate('fillSlot', [
+         avId, seatIndex, x, y, z, h, p, r, globalClockDelta.localToNetworkTime(self.timeOfBoarding), self.doId])
         self.getTableState()
         return
 
@@ -154,15 +138,17 @@ class DistributedPicnicTableAI(DistributedNodeAI):
             if simbase.config.GetBool('want-chinese', 0):
                 self.game = DistributedChineseCheckersAI.DistributedChineseCheckersAI(self.air, self.doId, 'chinese', self.getX(), self.getY(), self.getZ() + 2.83, self.getH(), self.getP(), self.getR())
                 self.sendUpdate('setZone', [self.game.zoneId])
-        elif gameNum == 2:
-            if x <= 2:
-                if simbase.config.GetBool('want-checkers', 0):
-                    self.game = DistributedCheckersAI.DistributedCheckersAI(self.air, self.doId, 'checkers', self.getX(), self.getY(), self.getZ() + 2.83, self.getH(), self.getP(), self.getR())
-                    self.sendUpdate('setZone', [self.game.zoneId])
-        elif x <= 2:
-            if simbase.config.GetBool('want-findfour', 0):
-                self.game = DistributedFindFourAI.DistributedFindFourAI(self.air, self.doId, 'findFour', self.getX(), self.getY(), self.getZ() + 2.83, self.getH(), self.getP(), self.getR())
-                self.sendUpdate('setZone', [self.game.zoneId])
+        else:
+            if gameNum == 2:
+                if x <= 2:
+                    if simbase.config.GetBool('want-checkers', 0):
+                        self.game = DistributedCheckersAI.DistributedCheckersAI(self.air, self.doId, 'checkers', self.getX(), self.getY(), self.getZ() + 2.83, self.getH(), self.getP(), self.getR())
+                        self.sendUpdate('setZone', [self.game.zoneId])
+            else:
+                if x <= 2:
+                    if simbase.config.GetBool('want-findfour', 0):
+                        self.game = DistributedFindFourAI.DistributedFindFourAI(self.air, self.doId, 'findFour', self.getX(), self.getY(), self.getZ() + 2.83, self.getH(), self.getP(), self.getR())
+                        self.sendUpdate('setZone', [self.game.zoneId])
         return
 
     def requestZone(self):
@@ -214,7 +200,8 @@ class DistributedPicnicTableAI(DistributedNodeAI):
         else:
             self.seats[seatIndex] = None
             self.ignore(self.air.getAvatarExitEvent(avId))
-            self.sendUpdate('emptySlot', [avId, seatIndex, globalClockDelta.getRealNetworkTime()])
+            self.sendUpdate('emptySlot', [
+             avId, seatIndex, globalClockDelta.getRealNetworkTime()])
             self.getTableState()
             numActive = 0
             for x in self.seats:

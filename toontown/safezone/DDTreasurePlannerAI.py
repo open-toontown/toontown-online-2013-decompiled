@@ -1,6 +1,5 @@
 from toontown.toonbase.ToontownGlobals import *
-import RegenTreasurePlannerAI
-import DistributedDDTreasureAI
+import RegenTreasurePlannerAI, DistributedDDTreasureAI
 
 class DDTreasurePlannerAI(RegenTreasurePlannerAI.RegenTreasurePlannerAI):
 

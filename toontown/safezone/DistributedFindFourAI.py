@@ -14,50 +14,10 @@ class DistributedFindFourAI(DistributedNodeAI):
         self.air = air
         self.setPos(x, y, z)
         self.setHpr(h, p, r)
-        self.myPos = (x, y, z)
+        self.myPos = (
+         x, y, z)
         self.myHpr = (h, p, r)
-        self.board = [[0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0],
-         [0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0],
-         [0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0],
-         [0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0],
-         [0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0],
-         [0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0]]
+        self.board = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]
         self.parent = self.air.doId2do[parent]
         self.parentDo = parent
         self.wantStart = []
@@ -67,7 +27,8 @@ class DistributedFindFourAI(DistributedNodeAI):
         self.movesMade = 0
         self.playerNum = 1
         self.winDirection = None
-        self.playersGamePos = [None, None]
+        self.playersGamePos = [
+         None, None]
         self.wantTimer = True
         self.timerEnd = 0
         self.turnEnd = 0
@@ -75,15 +36,16 @@ class DistributedFindFourAI(DistributedNodeAI):
         self.winLaffPoints = 20
         self.movesRequiredToWin = 10
         self.zoneId = self.air.allocateZone()
-        self.generateOtpObject(air.districtId, self.zoneId, optionalFields=['setX',
-         'setY',
-         'setZ',
-         'setH',
-         'setP',
-         'setR'])
+        self.generateOtpObject(air.districtId, self.zoneId, optionalFields=['setX', 'setY', 'setZ', 'setH', 'setP', 'setR'])
         self.parent.setCheckersZoneId(self.zoneId)
         self.timerStart = None
-        self.fsm = ClassicFSM.ClassicFSM('Checkers', [State.State('waitingToBegin', self.enterWaitingToBegin, self.exitWaitingToBegin, ['playing']), State.State('playing', self.enterPlaying, self.exitPlaying, ['gameOver']), State.State('gameOver', self.enterGameOver, self.exitGameOver, ['waitingToBegin'])], 'waitingToBegin', 'waitingToBegin')
+        self.fsm = ClassicFSM.ClassicFSM('Checkers', [
+         State.State('waitingToBegin', self.enterWaitingToBegin, self.exitWaitingToBegin, [
+          'playing']),
+         State.State('playing', self.enterPlaying, self.exitPlaying, [
+          'gameOver']),
+         State.State('gameOver', self.enterGameOver, self.exitGameOver, [
+          'waitingToBegin'])], 'waitingToBegin', 'waitingToBegin')
         self.fsm.enterInitialState()
         return
 
@@ -106,12 +68,14 @@ class DistributedFindFourAI(DistributedNodeAI):
         self.playersSitting += 1
         if self.playersSitting < 2:
             self.timerEnd = 0
-        elif self.playersSitting == 2:
-            self.timerEnd = globalClock.getRealTime() + 20
-            self.parent.isAccepting = False
-            self.parent.sendUpdate('setIsPlaying', [1])
-        elif self.playersSitting > 2:
-            pass
+        else:
+            if self.playersSitting == 2:
+                self.timerEnd = globalClock.getRealTime() + 20
+                self.parent.isAccepting = False
+                self.parent.sendUpdate('setIsPlaying', [1])
+            else:
+                if self.playersSitting > 2:
+                    pass
         self.sendUpdate('setTimer', [globalClockDelta.localToNetworkTime(self.timerEnd)])
 
     def informGameOfPlayerLeave(self):
@@ -171,10 +135,7 @@ class DistributedFindFourAI(DistributedNodeAI):
         x = pieceNum[0]
         y = pieceNum[1]
         if self.checkWin(x, y, playerNum) == True:
-            self.sendUpdate('announceWinnerPosition', [x,
-             y,
-             self.winDirection,
-             playerNum])
+            self.sendUpdate('announceWinnerPosition', [x, y, self.winDirection, playerNum])
             winnersSequence = Sequence(Wait(5.0), Func(self.fsm.request, 'gameOver'), Func(self.parent.announceWinner, 'Find Four', avId))
             winnersSequence.start()
         else:
@@ -289,10 +250,7 @@ class DistributedFindFourAI(DistributedNodeAI):
 
         self.board[movePos][moveColumn] = self.playersTurn + 1
         if self.checkForTie() == True:
-            self.sendUpdate('setGameState', [self.board,
-             moveColumn,
-             movePos,
-             turn])
+            self.sendUpdate('setGameState', [self.board, moveColumn, movePos, turn])
             self.sendUpdate('tie', [])
             winnersSequence = Sequence(Wait(8.0), Func(self.fsm.request, 'gameOver'))
             winnersSequence.start()
@@ -302,10 +260,7 @@ class DistributedFindFourAI(DistributedNodeAI):
         self.setTurnCountdownTime()
         self.sendUpdate('setTurnTimer', [globalClockDelta.localToNetworkTime(self.turnEnd)])
         self.d_sendTurn(self.playersTurn + 1)
-        self.sendUpdate('setGameState', [self.board,
-         moveColumn,
-         movePos,
-         turn])
+        self.sendUpdate('setGameState', [self.board, moveColumn, movePos, turn])
 
     def checkForTie(self):
         for x in range(7):
@@ -321,10 +276,8 @@ class DistributedFindFourAI(DistributedNodeAI):
         return self.name
 
     def getGameState(self):
-        return [self.board,
-         0,
-         0,
-         0]
+        return [
+         self.board, 0, 0, 0]
 
     def clearBoard(self):
         for x in self.board.squareList:
@@ -334,52 +287,10 @@ class DistributedFindFourAI(DistributedNodeAI):
         return self.posHpr
 
     def tempSetBoardState(self):
-        self.board = [[0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0],
-         [1,
-          2,
-          1,
-          2,
-          2,
-          2,
-          1],
-         [2,
-          2,
-          1,
-          2,
-          1,
-          2,
-          1],
-         [2,
-          1,
-          1,
-          2,
-          2,
-          1,
-          2],
-         [1,
-          2,
-          2,
-          1,
-          2,
-          1,
-          1],
-         [1,
-          2,
-          1,
-          2,
-          1,
-          2,
-          1]]
-        self.sendUpdate('setGameState', [self.board,
-         0,
-         0,
-         1])
+        self.board = [
+         [
+          0, 0, 0, 0, 0, 0, 0], [1, 2, 1, 2, 2, 2, 1], [2, 2, 1, 2, 1, 2, 1], [2, 1, 1, 2, 2, 1, 2], [1, 2, 2, 1, 2, 1, 1], [1, 2, 1, 2, 1, 2, 1]]
+        self.sendUpdate('setGameState', [self.board, 0, 0, 1])
 
     def checkWin(self, rVal, cVal, playerNum):
         if self.checkHorizontal(rVal, cVal, playerNum) == True:
