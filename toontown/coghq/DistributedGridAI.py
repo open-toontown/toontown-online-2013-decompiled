@@ -20,9 +20,11 @@ class DistributedGridAI(DistributedEntityAI.DistributedEntityAI):
     def initializeGrid(self):
         if not self.initialized:
             self.objPos = {}
-            self.gridCells = [None] * self.numRow
+            self.gridCells = [
+             None] * self.numRow
             for i in range(len(self.gridCells)):
-                self.gridCells[i] = [None] * self.numCol
+                self.gridCells[i] = [
+                 None] * self.numCol
                 for j in range(len(self.gridCells[i])):
                     self.gridCells[i][j] = []
 
@@ -44,7 +46,7 @@ class DistributedGridAI(DistributedEntityAI.DistributedEntityAI):
             self.notify.debug("didn't have record of obj")
         return
 
-    def addObjectByPos(self, objId, pos, width = 1):
+    def addObjectByPos(self, objId, pos, width=1):
         if not self.initialized:
             self.initializeGrid()
         if self.objPos.get(objId, None):
@@ -52,10 +54,7 @@ class DistributedGridAI(DistributedEntityAI.DistributedEntityAI):
         x, y = pos[0], pos[1]
         col = min(int(x / self.cellSize), self.numCol - width)
         row = min(int(y / self.cellSize), self.numRow - width)
-        self.notify.debug('attempt add %d at %s, row,col = %d,%d' % (objId,
-         pos,
-         row,
-         col))
+        self.notify.debug('attempt add %d at %s, row,col = %d,%d' % (objId, pos, row, col))
         while col >= 0 and col < self.numCol:
             while row >= 0 and row < self.numRow:
                 if self.addObjectByRowCol(objId, row, col):
@@ -84,10 +83,7 @@ class DistributedGridAI(DistributedEntityAI.DistributedEntityAI):
             self.gridCells[row][col + 1].append(objId)
             self.gridCells[row + 1][col + 1].append(objId)
             self.objPos[objId] = [row, col]
-            self.__setChangedActiveCells(onList=[[row, col],
-             [row + 1, col],
-             [row, col + 1],
-             [row + 1, col + 1]], objId=objId)
+            self.__setChangedActiveCells(onList=[[row, col], [row + 1, col], [row, col + 1], [row + 1, col + 1]], objId=objId)
             return 1
         self.notify.debug("couldn't obj to grid cell %s,%s" % (row, col))
         return 0
@@ -103,10 +99,7 @@ class DistributedGridAI(DistributedEntityAI.DistributedEntityAI):
         self.gridCells[row][col + 1].remove(objId)
         self.gridCells[row + 1][col + 1].remove(objId)
         del self.objPos[objId]
-        self.__setChangedActiveCells(offList=[[row, col],
-         [row + 1, col],
-         [row, col + 1],
-         [row + 1, col + 1]], objId=objId)
+        self.__setChangedActiveCells(offList=[[row, col], [row + 1, col], [row, col + 1], [row + 1, col + 1]], objId=objId)
 
     def checkMoveDir(self, objId, h):
         if h > 225 and h < 315:
@@ -131,22 +124,28 @@ class DistributedGridAI(DistributedEntityAI.DistributedEntityAI):
     def checkPush(self, objId, side):
         if side == 0:
             return self.checkMove(objId, 0, -1)
-        elif side == 1:
-            return self.checkMove(objId, 0, 1)
-        elif side == 2:
-            return self.checkMove(objId, -1, 0)
-        elif side == 3:
-            return self.checkMove(objId, 1, 0)
+        else:
+            if side == 1:
+                return self.checkMove(objId, 0, 1)
+            else:
+                if side == 2:
+                    return self.checkMove(objId, -1, 0)
+                else:
+                    if side == 3:
+                        return self.checkMove(objId, 1, 0)
 
     def doPush(self, objId, side):
         if side == 0:
             return self.doMove(objId, 0, -1)
-        elif side == 1:
-            return self.doMove(objId, 0, 1)
-        elif side == 2:
-            return self.doMove(objId, -1, 0)
-        elif side == 3:
-            return self.doMove(objId, 1, 0)
+        else:
+            if side == 1:
+                return self.doMove(objId, 0, 1)
+            else:
+                if side == 2:
+                    return self.doMove(objId, -1, 0)
+                else:
+                    if side == 3:
+                        return self.doMove(objId, 1, 0)
 
     def checkMove(self, objId, dRow, dCol):
         objPos = self.objPos.get(objId)
@@ -156,12 +155,14 @@ class DistributedGridAI(DistributedEntityAI.DistributedEntityAI):
         validMove = 1
         if dRow < 0:
             validMove = validMove & self.__isEmpty(row - 1, col) & self.__isEmpty(row - 1, col + 1)
-        elif dRow > 0:
-            validMove = validMove & self.__isEmpty(row + 2, col) & self.__isEmpty(row + 2, col + 1)
+        else:
+            if dRow > 0:
+                validMove = validMove & self.__isEmpty(row + 2, col) & self.__isEmpty(row + 2, col + 1)
         if dCol < 0:
             validMove = validMove & self.__isEmpty(row, col - 1) & self.__isEmpty(row + 1, col - 1)
-        elif dCol > 0:
-            validMove = validMove & self.__isEmpty(row, col + 2) & self.__isEmpty(row + 1, col + 2)
+        else:
+            if dCol > 0:
+                validMove = validMove & self.__isEmpty(row, col + 2) & self.__isEmpty(row + 1, col + 2)
         return validMove
 
     def doMove(self, objId, dRow, dCol):
@@ -181,21 +182,20 @@ class DistributedGridAI(DistributedEntityAI.DistributedEntityAI):
             self.gridCells[newRow + 1][newCol].append(objId)
             self.gridCells[newRow][newCol + 1].append(objId)
             self.gridCells[newRow + 1][newCol + 1].append(objId)
-            self.objPos[objId] = [newRow, newCol]
+            self.objPos[objId] = [
+             newRow, newCol]
             self.updateActiveCells(objId, row, col, dRow, dCol)
         return validMove
 
     def updateActiveCells(self, objId, row, col, dRow, dCol):
         newRow = row + dRow
         newCol = col + dCol
-        newCells = [[newRow, newCol],
-         [newRow + 1, newCol],
-         [newRow, newCol + 1],
-         [newRow + 1, newCol + 1]]
-        oldCells = [[row, col],
-         [row + 1, col],
-         [row, col + 1],
-         [row + 1, col + 1]]
+        newCells = [
+         [
+          newRow, newCol], [newRow + 1, newCol], [newRow, newCol + 1], [newRow + 1, newCol + 1]]
+        oldCells = [
+         [
+          row, col], [row + 1, col], [row, col + 1], [row + 1, col + 1]]
         onList = []
         offList = []
         for cell in newCells:
@@ -208,7 +208,7 @@ class DistributedGridAI(DistributedEntityAI.DistributedEntityAI):
 
         self.__setChangedActiveCells(onList, offList, objId)
 
-    def __setChangedActiveCells(self, onList = [], offList = [], objId = None):
+    def __setChangedActiveCells(self, onList=[], offList=[], objId=None):
         for cell in self.activeCellList:
             self.notify.debug('onList = %s, offList = %s, cell = %s' % (onList, offList, cell.getRowCol()))
             if cell.getRowCol() in onList:

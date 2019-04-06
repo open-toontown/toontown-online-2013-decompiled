@@ -39,7 +39,8 @@ class DistributedCashbotBossTreasureAI(DistributedSZTreasureAI.DistributedSZTrea
         return self.finalPosition
 
     def setFinalPosition(self, x, y, z):
-        self.finalPosition = (x, y, z)
+        self.finalPosition = (
+         x, y, z)
 
     def b_setFinalPosition(self, x, y, z):
         self.setFinalPosition(x, y, z)

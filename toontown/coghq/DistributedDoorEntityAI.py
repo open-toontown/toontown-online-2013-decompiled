@@ -56,7 +56,7 @@ class Lock(DistributedDoorEntityBase.LockBase, DirectObject.DirectObject, FourSt
 
 class DistributedDoorEntityAI(DistributedDoorEntityBase.DistributedDoorEntityBase, DistributedEntityAI.DistributedEntityAI, FourStateAI.FourStateAI):
 
-    def __init__(self, level, entId, zoneId = None):
+    def __init__(self, level, entId, zoneId=None):
         self.entId = entId
         self._isGenerated = 0
         self.isOpenInput = None
@@ -88,7 +88,8 @@ class DistributedDoorEntityAI(DistributedDoorEntityBase.DistributedDoorEntityBas
             self.sendUpdate('setLocksState', [self.getLocksState()])
 
     def getDoorState(self):
-        r = (self.stateIndex, globalClockDelta.getRealNetworkTime())
+        r = (
+         self.stateIndex, globalClockDelta.getRealNetworkTime())
         return r
 
     def getName(self):

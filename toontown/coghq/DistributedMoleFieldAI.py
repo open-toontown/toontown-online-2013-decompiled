@@ -77,7 +77,7 @@ class DistributedMoleFieldAI(DistributedEntityAI.DistributedEntityAI, MoleFieldB
             if not self.challengeDefeated:
                 self.forceChallengeDefeated()
 
-    def forceChallengeDefeated(self, pityWin = False):
+    def forceChallengeDefeated(self, pityWin=False):
         self.challengeDefeated = True
         self.removeTask(self.moleFieldEndTimeTaskName)
         roomId = self.getLevelDoId()
@@ -96,9 +96,10 @@ class DistributedMoleFieldAI(DistributedEntityAI.DistributedEntityAI, MoleFieldB
             room = simbase.air.doId2do.get(roomId)
             self.roundsFailed += 1
             self.restartGame()
-        elif self.roundsFailed >= 4:
-            if not self.challengeDefeated:
-                self.forceChallengeDefeated(pityWin=True)
+        else:
+            if self.roundsFailed >= 4:
+                if not self.challengeDefeated:
+                    self.forceChallengeDefeated(pityWin=True)
 
     def damageMe(self):
         roomId = self.getLevelDoId()

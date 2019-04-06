@@ -9,7 +9,7 @@ from direct.task import Task
 
 class DistributedLawOfficeElevatorExtAI(DistributedElevatorExtAI.DistributedElevatorExtAI):
 
-    def __init__(self, air, bldg, lawOfficeId, entranceId, antiShuffle = 0, minLaff = 0):
+    def __init__(self, air, bldg, lawOfficeId, entranceId, antiShuffle=0, minLaff=0):
         DistributedElevatorExtAI.DistributedElevatorExtAI.__init__(self, air, bldg, antiShuffle=antiShuffle, minLaff=minLaff)
         self.lawOfficeId = lawOfficeId
         self.entranceId = entranceId
@@ -46,4 +46,5 @@ class DistributedLawOfficeElevatorExtAI(DistributedElevatorExtAI.DistributedElev
             officeZone = self.bldg.createLawOffice(self.lawOfficeId, self.entranceId, avIdList)
             for avId in avIdList:
                 if avId:
-                    self.sendUpdateToAvatarId(avId, 'setLawOfficeInteriorZoneForce', [officeZone])
+                    self.sendUpdateToAvatarId(avId, 'setLawOfficeInteriorZoneForce', [
+                     officeZone])

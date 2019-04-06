@@ -1,11 +1,8 @@
 from otp.level import DistributedLevelAI
 from direct.directnotify import DirectNotifyGlobal
-import cPickle
-import LevelSuitPlannerAI
-import LawOfficeBase
+import cPickle, LevelSuitPlannerAI, LawOfficeBase
 from direct.task import Task
-import FactoryEntityCreatorAI
-import FactorySpecs
+import FactoryEntityCreatorAI, FactorySpecs
 from otp.level import LevelSpec
 import CogDisguiseGlobals
 from toontown.suit import DistributedFactorySuitAI
@@ -115,7 +112,7 @@ class DistributedLawOfficeAI(DistributedObjectAI, LawOfficeBase.LawOfficeBase):
     def startSignal(self):
         self.sendUpdate('startSignal')
 
-    def dumpEveryone(self, optArg = None):
+    def dumpEveryone(self, optArg=None):
         pass
 
     def getTaskZoneId(self):

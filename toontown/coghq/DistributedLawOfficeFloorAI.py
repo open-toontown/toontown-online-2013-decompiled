@@ -1,11 +1,8 @@
 from otp.level import DistributedLevelAI
 from direct.directnotify import DirectNotifyGlobal
-import cPickle
-import LevelSuitPlannerAI
-import LawOfficeBase
+import cPickle, LevelSuitPlannerAI, LawOfficeBase
 from direct.task import Task
-import FactoryEntityCreatorAI
-import FactorySpecs
+import FactoryEntityCreatorAI, FactorySpecs
 from otp.level import LevelSpec
 import CogDisguiseGlobals
 from toontown.suit import DistributedFactorySuitAI
@@ -59,10 +56,7 @@ class DistributedLawOfficeFloorAI(DistributedLevelAI.DistributedLevelAI, LawOffi
         self.reserveSuits = suitHandles['reserveSuits']
         self.d_setSuits()
         scenario = 0
-        description = '%s|%s|%s|%s' % (self.lawOfficeId,
-         self.entranceId,
-         scenario,
-         self.avIdList)
+        description = '%s|%s|%s|%s' % (self.lawOfficeId, self.entranceId, scenario, self.avIdList)
         for avId in self.avIdList:
             self.air.writeServerEvent('DAOffice Entered', avId, description)
 
@@ -112,10 +106,7 @@ class DistributedLawOfficeFloorAI(DistributedLevelAI.DistributedLevelAI, LawOffi
                 activeVictorIds.append(victorId)
 
         scenario = 0
-        description = '%s|%s|%s|%s' % (self.lawOfficeId,
-         self.entranceId,
-         scenario,
-         activeVictorIds)
+        description = '%s|%s|%s|%s' % (self.lawOfficeId, self.entranceId, scenario, activeVictorIds)
         for avId in activeVictorIds:
             self.air.writeServerEvent('DAOffice Defeated', avId, description)
 

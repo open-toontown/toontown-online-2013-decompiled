@@ -34,24 +34,24 @@ class DistributedLaserFieldAI(BattleBlockerAI.BattleBlockerAI, NodePath, BasicEn
 
     def setGridGame(self, gameName):
         if gameName == 'Random':
-            gameName = random.choice(['MineSweeper',
-             'Roll',
-             'Avoid',
-             'Drag'])
+            gameName = random.choice(['MineSweeper', 'Roll', 'Avoid', 'Drag'])
         self.gridGame = gameName
         if hasattr(self, 'game'):
             self.game.delete()
             self.game = None
         if gameName == 'Drag':
             self.game = LaserGameDrag.LaserGameDrag(self.trapDisable, self.trapFire, self.sendField, self.setGrid)
-        elif gameName == 'MineSweeper':
-            self.game = LaserGameMineSweeper.LaserGameMineSweeper(self.trapDisable, self.trapFire, self.sendField, self.setGrid)
-        elif gameName == 'Roll':
-            self.game = LaserGameRoll.LaserGameRoll(self.trapDisable, self.trapFire, self.sendField, self.setGrid)
-        elif gameName == 'Avoid':
-            self.game = LaserGameAvoid.LaserGameAvoid(self.trapDisable, self.trapFire, self.sendField, self.setGrid)
         else:
-            self.game = LaserGameMineSweeper.LaserGameMineSweeper(self.trapDisable, self.trapFire, self.sendField, self.setGrid)
+            if gameName == 'MineSweeper':
+                self.game = LaserGameMineSweeper.LaserGameMineSweeper(self.trapDisable, self.trapFire, self.sendField, self.setGrid)
+            else:
+                if gameName == 'Roll':
+                    self.game = LaserGameRoll.LaserGameRoll(self.trapDisable, self.trapFire, self.sendField, self.setGrid)
+                else:
+                    if gameName == 'Avoid':
+                        self.game = LaserGameAvoid.LaserGameAvoid(self.trapDisable, self.trapFire, self.sendField, self.setGrid)
+                    else:
+                        self.game = LaserGameMineSweeper.LaserGameMineSweeper(self.trapDisable, self.trapFire, self.sendField, self.setGrid)
         self.game.startGrid()
         self.sendField()
         self.sendUpdate('setGridGame', [gameName])
@@ -87,7 +87,8 @@ class DistributedLaserFieldAI(BattleBlockerAI.BattleBlockerAI, NodePath, BasicEn
         self.game.setGridSize(gridNumX, gridNumY)
 
     def getGrid(self):
-        return (self.game.gridNumX, self.game.gridNumY)
+        return (
+         self.game.gridNumX, self.game.gridNumY)
 
     def getField(self):
         fieldData = []
@@ -136,6 +137,9 @@ class DistributedLaserFieldAI(BattleBlockerAI.BattleBlockerAI, NodePath, BasicEn
             self.game.win()
 
     def trapFire(self):
+        if not self.enabled:
+            return
+        self.enabled = 0
         self.game.lose()
         self.showSuits()
         stage = self.air.getDo(self.level.stageDoId)
@@ -162,6 +166,8 @@ class DistributedLaserFieldAI(BattleBlockerAI.BattleBlockerAI, NodePath, BasicEn
                 switch.setIsOn(1)
 
     def trapDisable(self):
+        if not self.enabled:
+            return
         self.enabled = 0
         suits = self.level.planner.battleCellId2suits.get(self.cellId)
         messenger.send(self.getOutputEventName(), [1])

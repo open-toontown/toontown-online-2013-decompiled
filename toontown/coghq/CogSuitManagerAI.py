@@ -11,10 +11,8 @@ class CogSuitManagerAI:
         self.air = air
 
     def recoverPart(self, av, factoryType, suitTrack, zoneId, avList):
-        partsRecovered = [0,
-         0,
-         0,
-         0]
+        partsRecovered = [
+         0, 0, 0, 0]
         part = av.giveGenericCogPart(factoryType, suitTrack)
         if part:
             partsRecovered[CogDisguiseGlobals.dept2deptIndex(suitTrack)] = part

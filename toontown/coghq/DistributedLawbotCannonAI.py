@@ -11,12 +11,7 @@ class DistributedLawbotCannonAI(DistributedObjectAI.DistributedObjectAI):
     def __init__(self, air, lawbotBoss, index, x, y, z, h, p, r):
         DistributedObjectAI.DistributedObjectAI.__init__(self, air)
         self.index = index
-        self.posHpr = [x,
-         y,
-         z,
-         h,
-         p,
-         r]
+        self.posHpr = [x, y, z, h, p, r]
         self.boss = lawbotBoss
         self.bossId = lawbotBoss.doId
         self.avId = 0
@@ -55,7 +50,7 @@ class DistributedLawbotCannonAI(DistributedObjectAI.DistributedObjectAI):
             self.setMovie(CannonGlobals.CANNON_MOVIE_LOAD, self.avId, cannonBallsLeft)
             self.acceptOnce(self.air.getAvatarExitEvent(avId), self.__handleUnexpectedExit, extraArgs=[avId])
         else:
-            self.air.writeServerEvent('suspicious', avId, 'DistributedCannonAI.requestEnter cannon already occupied')
+            self.air.writeServerEvent('suspicious', avId, 'DistributedLawbotCannonAI.requestEnter cannon already occupied')
             self.notify.warning('requestEnter() - cannon already occupied')
 
     def setMovie(self, mode, avId, extraInfo):
@@ -100,9 +95,5 @@ class DistributedLawbotCannonAI(DistributedObjectAI.DistributedObjectAI):
             return
         self.notify.debug('setCannonLit: ' + str(avId) + ': zRot=' + str(zRot) + ', angle=' + str(angle))
         fireTime = CannonGameGlobals.FUSE_TIME
-        self.sendUpdate('setCannonWillFire', [avId,
-         fireTime,
-         zRot,
-         angle,
-         globalClockDelta.getRealNetworkTime()])
+        self.sendUpdate('setCannonWillFire', [avId, fireTime, zRot, angle, globalClockDelta.getRealNetworkTime()])
         self.boss.decrementCannonBallsLeft(avId)

@@ -11,12 +11,13 @@ from direct.showbase.PythonUtil import addListsByValue, enumerate
 class DistributedStageBattleAI(DistributedLevelBattleAI.DistributedLevelBattleAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedStageBattleAI')
 
-    def __init__(self, air, battleMgr, pos, suit, toonId, zoneId, level, battleCellId, roundCallback = None, finishCallback = None, maxSuits = 4):
+    def __init__(self, air, battleMgr, pos, suit, toonId, zoneId, level, battleCellId, roundCallback=None, finishCallback=None, maxSuits=4):
         DistributedLevelBattleAI.DistributedLevelBattleAI.__init__(self, air, battleMgr, pos, suit, toonId, zoneId, level, battleCellId, 'StageReward', roundCallback, finishCallback, maxSuits)
         self.battleCalc.setSkillCreditMultiplier(1)
         if self.bossBattle:
             self.level.d_setBossConfronted(toonId)
-        self.fsm.addState(State.State('StageReward', self.enterStageReward, self.exitStageReward, ['Resume']))
+        self.fsm.addState(State.State('StageReward', self.enterStageReward, self.exitStageReward, [
+         'Resume']))
         playMovieState = self.fsm.getStateNamed('PlayMovie')
         playMovieState.addTransition('StageReward')
 
@@ -31,10 +32,8 @@ class DistributedStageBattleAI(DistributedLevelBattleAI.DistributedLevelBattleAI
             self.suitsKilledPerFloor[floor].extend(self.suitsKilledThisBattle)
 
     def handleToonsWon(self, toons):
-        extraMerits = [0,
-         0,
-         0,
-         0]
+        extraMerits = [
+         0, 0, 0, 0]
         amount = ToontownGlobals.StageNoticeRewards[self.level.stageId]
         index = ToontownGlobals.cogHQZoneId2deptIndex(self.level.stageId)
         extraMerits[index] = amount

@@ -38,7 +38,7 @@ class DistributedCrusherEntityAI(DistributedEntityAI.DistributedEntityAI):
                 self.crushCell.registerCrusher(self.entId)
         return
 
-    def sendCrushMsg(self, axis = 0):
+    def sendCrushMsg(self, axis=0):
         if self.isCrusher:
             messenger.send(self.crushMsg, [self.entId, axis])
 

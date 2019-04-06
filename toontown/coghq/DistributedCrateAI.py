@@ -25,10 +25,7 @@ class DistributedCrateAI(DistributedCrushableEntityAI.DistributedCrushableEntity
     def requestPush(self, side):
         self.notify.debug('requestPush')
         avId = self.air.getAvatarIdFromSender()
-        if side not in [0,
-         1,
-         2,
-         3]:
+        if side not in [0, 1, 2, 3]:
             self.air.writeServerEvent('suspicious', avId, 'DistributedCrateAI.requestPush given invalid side arg')
             return
         if not self.avId and self.grid.checkPush(self.entId, side):
@@ -49,16 +46,14 @@ class DistributedCrateAI(DistributedCrushableEntityAI.DistributedCrushableEntity
 
     def sendPushTask(self, task):
         self.notify.debug('sendPushTask')
+        if not hasattr(self, 'entId'):
+            self.notify.warning("avoiding AI Crash AttributeError: DistributedCrateAI instance has no attribute 'entId'")
+            return
         oldPos = self.grid.getObjPos(self.entId)
         if self.grid.doPush(self.entId, self.side):
             newPos = self.grid.getObjPos(self.entId)
-            self.sendUpdate('setMoveTo', [self.avId,
-             oldPos[0],
-             oldPos[1],
-             oldPos[2],
-             newPos[0],
-             newPos[1],
-             newPos[2]])
+            self.sendUpdate('setMoveTo', [
+             self.avId, oldPos[0], oldPos[1], oldPos[2], newPos[0], newPos[1], newPos[2]])
             taskMgr.doMethodLater(CrateGlobals.T_PUSH + CrateGlobals.T_PAUSE, self.sendPushTask, self.taskName('sendPush'))
         else:
             taskMgr.remove(self.taskName('sendPush'))

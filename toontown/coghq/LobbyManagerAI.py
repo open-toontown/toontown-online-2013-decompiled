@@ -23,12 +23,12 @@ class LobbyManagerAI(DistributedObjectAI.DistributedObjectAI):
         bossZone = self.air.allocateZone()
         self.notify.info('createBossOffice: %s' % bossZone)
         bossCog = self.bossConstructor(self.air)
-        bossCog.generateWithRequired(bossZone)
-        self.acceptOnce(bossCog.uniqueName('BossDone'), self.destroyBossOffice, extraArgs=[bossCog])
         for avId in avIdList:
             if avId:
                 bossCog.addToon(avId)
 
+        bossCog.generateWithRequired(bossZone)
+        self.acceptOnce(bossCog.uniqueName('BossDone'), self.destroyBossOffice, extraArgs=[bossCog])
         bossCog.b_setState('WaitForToons')
         return bossZone
 

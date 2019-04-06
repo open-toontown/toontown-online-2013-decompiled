@@ -2,14 +2,12 @@ from pandac.PandaModules import *
 from direct.showbase import DirectObject
 from toontown.suit import SuitDNA
 from direct.directnotify import DirectNotifyGlobal
-import LevelBattleManagerAI
-import types
-import random
+import LevelBattleManagerAI, types, random
 
 class LevelSuitPlannerAI(DirectObject.DirectObject):
     notify = DirectNotifyGlobal.directNotify.newCategory('LevelSuitPlannerAI')
 
-    def __init__(self, air, level, cogCtor, battleCtor, cogSpecs, reserveCogSpecs, battleCellSpecs, battleExpAggreg = None):
+    def __init__(self, air, level, cogCtor, battleCtor, cogSpecs, reserveCogSpecs, battleCellSpecs, battleExpAggreg=None):
         self.air = air
         self.level = level
         self.cogCtor = cogCtor
@@ -47,7 +45,7 @@ class LevelSuitPlannerAI(DirectObject.DirectObject):
         if __dev__:
             pass
 
-        def getSuitDict(spec, cogId, level = level, track = track):
+        def getSuitDict(spec, cogId, level=level, track=track):
             suitDict = {}
             suitDict['track'] = track
             suitDict.update(spec)
@@ -124,10 +122,7 @@ class LevelSuitPlannerAI(DirectObject.DirectObject):
                 else:
                     battle = self.battleMgr.getBattle(cellIndex)
                     if battle:
-                        self.notify.warning('battle not joinable: numSuits=%s, joinable=%s, fsm=%s, toonId=%s' % (len(battle.suits),
-                         battle.isJoinable(),
-                         battle.fsm.getCurrentState().getName(),
-                         toonId))
+                        self.notify.warning('battle not joinable: numSuits=%s, joinable=%s, fsm=%s, toonId=%s' % (len(battle.suits), battle.isJoinable(), battle.fsm.getCurrentState().getName(), toonId))
                     else:
                         self.notify.warning('battle not joinable: no battle for cell %s, toonId=%s' % (cellIndex, toonId))
                     return 0
@@ -207,7 +202,7 @@ class LevelSuitPlannerAI(DirectObject.DirectObject):
         if newCell is not None:
             self.battleCellId2suits[newCell].append(suit)
 
-            def addSuitToBlocker(self = self):
+            def addSuitToBlocker(self=self):
                 blocker = self.battleMgr.battleBlockers.get(newCell)
                 if blocker:
                     blocker.addSuit(suit)

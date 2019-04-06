@@ -8,9 +8,15 @@ from otp.level import DistributedEntityAI
 
 class DistributedSwitchAI(DistributedSwitchBase.DistributedSwitchBase, DistributedEntityAI.DistributedEntityAI):
 
-    def __init__(self, level, entId, zoneId = None):
+    def __init__(self, level, entId, zoneId=None):
         DistributedEntityAI.DistributedEntityAI.__init__(self, level, entId)
-        self.fsm = ClassicFSM.ClassicFSM('DistributedSwitch', [State.State('off', self.enterOff, self.exitOff, ['playing']), State.State('attract', self.enterAttract, self.exitAttract, ['playing']), State.State('playing', self.enterPlaying, self.exitPlaying, ['attract'])], 'off', 'off')
+        self.fsm = ClassicFSM.ClassicFSM('DistributedSwitch', [
+         State.State('off', self.enterOff, self.exitOff, [
+          'playing']),
+         State.State('attract', self.enterAttract, self.exitAttract, [
+          'playing']),
+         State.State('playing', self.enterPlaying, self.exitPlaying, [
+          'attract'])], 'off', 'off')
         self.fsm.enterInitialState()
         self.avatarId = 0
         self.doLaterTask = None
@@ -38,7 +44,8 @@ class DistributedSwitchAI(DistributedSwitchBase.DistributedSwitchBase, Distribut
         return self.avatarId
 
     def getState(self):
-        r = [self.fsm.getCurrentState().getName(), globalClockDelta.getRealNetworkTime()]
+        r = [
+         self.fsm.getCurrentState().getName(), globalClockDelta.getRealNetworkTime()]
         return r
 
     def sendState(self):
@@ -51,8 +58,9 @@ class DistributedSwitchAI(DistributedSwitchBase.DistributedSwitchBase, Distribut
             if isOn:
                 if stateName != 'playing':
                     self.fsm.request('playing')
-            elif stateName != 'attract':
-                self.fsm.request('attract')
+            else:
+                if stateName != 'attract':
+                    self.fsm.request('attract')
             messenger.send(self.getOutputEventName(), [isOn])
 
     def getIsOn(self):

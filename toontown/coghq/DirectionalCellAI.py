@@ -1,13 +1,13 @@
 from direct.directnotify import DirectNotifyGlobal
-import ActiveCellAI
-import CrateGlobals
+import ActiveCellAI, CrateGlobals
 from direct.task import Task
 
 class DirectionalCellAI(ActiveCellAI.ActiveCellAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('DirectionalCellAI')
 
     def __init__(self, level, entId):
-        self.dir = [0, 0]
+        self.dir = [
+         0, 0]
         ActiveCellAI.ActiveCellAI.__init__(self, level, entId)
         self.moveTrack = None
         return
@@ -20,7 +20,7 @@ class DirectionalCellAI(ActiveCellAI.ActiveCellAI):
         taskMgr.remove(self.taskName('moveTask'))
         return
 
-    def setState(self, state, objId = None):
+    def setState(self, state, objId=None):
         ActiveCellAI.ActiveCellAI.setState(self, state, objId)
         self.startMoveTask()
 
@@ -37,10 +37,6 @@ class DirectionalCellAI(ActiveCellAI.ActiveCellAI):
             newPos = self.grid.getObjPos(self.occupantId)
             crate = simbase.air.doId2do.get(self.occupantId)
             if crate:
-                crate.sendUpdate('setMoveTo', [oldPos[0],
-                 oldPos[1],
-                 oldPos[2],
-                 newPos[0],
-                 newPos[1],
-                 newPos[2]])
+                crate.sendUpdate('setMoveTo', [
+                 oldPos[0], oldPos[1], oldPos[2], newPos[0], newPos[1], newPos[2]])
         return Task.done

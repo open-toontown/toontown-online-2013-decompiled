@@ -10,7 +10,7 @@ from pandac.PandaModules import *
 class DistributedStageAI(DistributedObjectAI.DistributedObjectAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedStageAI')
 
-    def __init__(self, air, stageId, zoneId, floorNum, avIds, layoutIndex, battleExpAggreg = None):
+    def __init__(self, air, stageId, zoneId, floorNum, avIds, layoutIndex, battleExpAggreg=None):
         DistributedObjectAI.DistributedObjectAI.__init__(self, air)
         self.stageId = stageId
         self.zoneId = zoneId

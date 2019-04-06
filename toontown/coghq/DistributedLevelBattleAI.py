@@ -10,7 +10,7 @@ from direct.showbase.PythonUtil import addListsByValue
 class DistributedLevelBattleAI(DistributedBattleAI.DistributedBattleAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedLevelBattleAI')
 
-    def __init__(self, air, battleMgr, pos, suit, toonId, zoneId, level, battleCellId, winState, roundCallback = None, finishCallback = None, maxSuits = 4):
+    def __init__(self, air, battleMgr, pos, suit, toonId, zoneId, level, battleCellId, winState, roundCallback=None, finishCallback=None, maxSuits=4):
         self.blocker = None
         self.level = level
         self.battleCellId = battleCellId
@@ -64,7 +64,7 @@ class DistributedLevelBattleAI(DistributedBattleAI.DistributedBattleAI):
     def storeSuitsKilledThisBattle(self):
         self.suitsKilledPerFloor.append(self.suitsKilledThisBattle)
 
-    def resume(self, topFloor = 0):
+    def resume(self, topFloor=0):
         if len(self.suits) == 0:
             avList = []
             for toonId in self.activeToons:
@@ -122,12 +122,14 @@ class DistributedLevelBattleAI(DistributedBattleAI.DistributedBattleAI):
         if self.ignoreFaceOffDone == 1:
             self.notify.debug('faceOffDone() - ignoring toon: %d' % toonId)
             return
-        elif self.fsm.getCurrentState().getName() != 'FaceOff':
-            self.notify.warning('faceOffDone() - in state: %s' % self.fsm.getCurrentState().getName())
-            return
-        elif self.toons.count(toonId) == 0:
-            self.notify.warning('faceOffDone() - toon: %d not in toon list' % toonId)
-            return
+        else:
+            if self.fsm.getCurrentState().getName() != 'FaceOff':
+                self.notify.warning('faceOffDone() - in state: %s' % self.fsm.getCurrentState().getName())
+                return
+            else:
+                if self.toons.count(toonId) == 0:
+                    self.notify.warning('faceOffDone() - toon: %d not in toon list' % toonId)
+                    return
         self.notify.debug('toon: %d done facing off' % toonId)
         if not self.ignoreFaceOffDone:
             self.handleFaceOffDone()

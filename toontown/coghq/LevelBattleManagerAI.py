@@ -5,7 +5,7 @@ from toontown.coghq import BattleExperienceAggregatorAI
 class LevelBattleManagerAI(BattleManagerAI.BattleManagerAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('LevelBattleManagerAI')
 
-    def __init__(self, air, level, battleCtor, battleExpAggreg = None):
+    def __init__(self, air, level, battleCtor, battleExpAggreg=None):
         BattleManagerAI.BattleManagerAI.__init__(self, air)
         self.battleCtor = battleCtor
         self.level = level
@@ -29,7 +29,7 @@ class LevelBattleManagerAI(BattleManagerAI.BattleManagerAI):
         del self.battleExpAggreg
         return
 
-    def newBattle(self, cellId, zoneId, pos, suit, toonId, roundCallback = None, finishCallback = None, maxSuits = 4):
+    def newBattle(self, cellId, zoneId, pos, suit, toonId, roundCallback=None, finishCallback=None, maxSuits=4):
         battle = self.cellId2battle.get(cellId, None)
         if battle != None:
             self.notify.debug('battle already created by battle blocker, add toon %d' % toonId)

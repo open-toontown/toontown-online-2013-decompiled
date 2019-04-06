@@ -11,12 +11,13 @@ from direct.showbase.PythonUtil import addListsByValue
 class DistributedCountryClubBattleAI(DistributedLevelBattleAI.DistributedLevelBattleAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedCountryClubBattleAI')
 
-    def __init__(self, air, battleMgr, pos, suit, toonId, zoneId, level, battleCellId, roundCallback = None, finishCallback = None, maxSuits = 4):
+    def __init__(self, air, battleMgr, pos, suit, toonId, zoneId, level, battleCellId, roundCallback=None, finishCallback=None, maxSuits=4):
         DistributedLevelBattleAI.DistributedLevelBattleAI.__init__(self, air, battleMgr, pos, suit, toonId, zoneId, level, battleCellId, 'CountryClubReward', roundCallback, finishCallback, maxSuits)
         self.battleCalc.setSkillCreditMultiplier(1)
         if self.bossBattle:
             self.level.d_setBossConfronted(toonId)
-        self.fsm.addState(State.State('CountryClubReward', self.enterCountryClubReward, self.exitCountryClubReward, ['Resume']))
+        self.fsm.addState(State.State('CountryClubReward', self.enterCountryClubReward, self.exitCountryClubReward, [
+         'Resume']))
         playMovieState = self.fsm.getStateNamed('PlayMovie')
         playMovieState.addTransition('CountryClubReward')
 
@@ -24,10 +25,8 @@ class DistributedCountryClubBattleAI(DistributedLevelBattleAI.DistributedLevelBa
         return self.level.countryClubId
 
     def handleToonsWon(self, toons):
-        extraMerits = [0,
-         0,
-         0,
-         0]
+        extraMerits = [
+         0, 0, 0, 0]
         amount = ToontownGlobals.CountryClubCogBuckRewards[self.level.countryClubId]
         index = ToontownGlobals.cogHQZoneId2deptIndex(self.level.countryClubId)
         extraMerits[index] = amount

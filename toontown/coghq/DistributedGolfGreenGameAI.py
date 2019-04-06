@@ -9,8 +9,7 @@ from toontown.coghq import BattleBlockerAI
 from direct.distributed.ClockDelta import *
 from toontown.toonbase import ToontownBattleGlobals
 from GolfGreenGameGlobals import *
-import random
-import time
+import random, time
 
 class DistributedGolfGreenGameAI(BattleBlockerAI.BattleBlockerAI, NodePath, BasicEntities.NodePathAttribs):
 
@@ -68,10 +67,7 @@ class DistributedGolfGreenGameAI(BattleBlockerAI.BattleBlockerAI, NodePath, Basi
                 choice = len(gameBoards) - 1
             self.preData.append(gameBoards[choice])
             boardSelect.remove(choice)
-            self.boardList.append([[],
-             index,
-             index,
-             None])
+            self.boardList.append([[], index, index, None])
 
         self.boardData = []
         self.attackPatterns = []
@@ -114,7 +110,7 @@ class DistributedGolfGreenGameAI(BattleBlockerAI.BattleBlockerAI, NodePath, Basi
         taskMgr.doMethodLater(1.0, self.__printTime, self.taskName('GolfGreenGameTimeout Print'))
         return task.done
 
-    def __handleTimeOut(self, task = None):
+    def __handleTimeOut(self, task=None):
         taskMgr.remove(self.taskName('GolfGreenGameTimeout'))
         self.__handleFinsihed(0)
         return task.done

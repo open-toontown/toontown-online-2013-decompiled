@@ -9,7 +9,7 @@ from toontown.building import DistributedClubElevatorAI
 class DistributedCountryClubAI(DistributedObjectAI.DistributedObjectAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedCountryClubAI')
 
-    def __init__(self, air, countryClubId, zoneId, floorNum, avIds, layoutIndex, battleExpAggreg = None):
+    def __init__(self, air, countryClubId, zoneId, floorNum, avIds, layoutIndex, battleExpAggreg=None):
         DistributedObjectAI.DistributedObjectAI.__init__(self, air)
         self.countryClubId = countryClubId
         self.zoneId = zoneId

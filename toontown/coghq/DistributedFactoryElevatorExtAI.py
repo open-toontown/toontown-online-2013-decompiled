@@ -9,7 +9,7 @@ from direct.task import Task
 
 class DistributedFactoryElevatorExtAI(DistributedElevatorExtAI.DistributedElevatorExtAI):
 
-    def __init__(self, air, bldg, factoryId, entranceId, antiShuffle = 0, minLaff = 0):
+    def __init__(self, air, bldg, factoryId, entranceId, antiShuffle=0, minLaff=0):
         DistributedElevatorExtAI.DistributedElevatorExtAI.__init__(self, air, bldg, antiShuffle=antiShuffle, minLaff=minLaff)
         self.factoryId = factoryId
         self.entranceId = entranceId
@@ -46,4 +46,5 @@ class DistributedFactoryElevatorExtAI(DistributedElevatorExtAI.DistributedElevat
             factoryZone = self.bldg.createFactory(self.factoryId, self.entranceId, avIdList)
             for avId in avIdList:
                 if avId:
-                    self.sendUpdateToAvatarId(avId, 'setFactoryInteriorZoneForce', [factoryZone])
+                    self.sendUpdateToAvatarId(avId, 'setFactoryInteriorZoneForce', [
+                     factoryZone])

@@ -1,11 +1,8 @@
 from otp.level import DistributedLevelAI
 from direct.directnotify import DirectNotifyGlobal
-import cPickle
-import LevelSuitPlannerAI
-import FactoryBase
+import cPickle, LevelSuitPlannerAI, FactoryBase
 from direct.task import Task
-import FactoryEntityCreatorAI
-import FactorySpecs
+import FactoryEntityCreatorAI, FactorySpecs
 from otp.level import LevelSpec
 import CogDisguiseGlobals
 from toontown.suit import DistributedFactorySuitAI
@@ -49,10 +46,7 @@ class DistributedFactoryAI(DistributedLevelAI.DistributedLevelAI, FactoryBase.Fa
         self.reserveSuits = suitHandles['reserveSuits']
         self.d_setSuits()
         scenario = 0
-        description = '%s|%s|%s|%s' % (self.factoryId,
-         self.entranceId,
-         scenario,
-         self.avIdList)
+        description = '%s|%s|%s|%s' % (self.factoryId, self.entranceId, scenario, self.avIdList)
         for avId in self.avIdList:
             self.air.writeServerEvent('factoryEntered', avId, description)
 
@@ -98,10 +92,7 @@ class DistributedFactoryAI(DistributedLevelAI.DistributedLevelAI, FactoryBase.Fa
                 activeVictorIds.append(victorId)
 
         scenario = 0
-        description = '%s|%s|%s|%s' % (self.factoryId,
-         self.entranceId,
-         scenario,
-         activeVictorIds)
+        description = '%s|%s|%s|%s' % (self.factoryId, self.entranceId, scenario, activeVictorIds)
         for avId in activeVictorIds:
             self.air.writeServerEvent('factoryDefeated', avId, description)
 

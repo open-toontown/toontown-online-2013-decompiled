@@ -8,23 +8,21 @@ class DistributedCogKartAI(DistributedElevatorExtAI.DistributedElevatorExtAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedCogKartAI')
 
     def __init__(self, air, index, x, y, z, h, p, r, bldg, minLaff):
-        self.posHpr = (x,
-         y,
-         z,
-         h,
-         p,
-         r)
+        self.posHpr = (
+         x, y, z, h, p, r)
         DistributedElevatorExtAI.DistributedElevatorExtAI.__init__(self, air, bldg, minLaff=minLaff)
         self.type = ElevatorConstants.ELEVATOR_COUNTRY_CLUB
         self.courseIndex = index
         if self.courseIndex == 0:
             self.countryClubId = ToontownGlobals.BossbotCountryClubIntA
-        elif self.courseIndex == 1:
-            self.countryClubId = ToontownGlobals.BossbotCountryClubIntB
-        elif self.courseIndex == 2:
-            self.countryClubId = ToontownGlobals.BossbotCountryClubIntC
         else:
-            self.countryClubId = 12500
+            if self.courseIndex == 1:
+                self.countryClubId = ToontownGlobals.BossbotCountryClubIntB
+            else:
+                if self.courseIndex == 2:
+                    self.countryClubId = ToontownGlobals.BossbotCountryClubIntC
+                else:
+                    self.countryClubId = 12500
 
     def getPosHpr(self):
         return self.posHpr
@@ -41,7 +39,8 @@ class DistributedCogKartAI(DistributedElevatorExtAI.DistributedElevatorExtAI):
             for seatIndex in range(len(self.seats)):
                 avId = self.seats[seatIndex]
                 if avId:
-                    self.sendUpdateToAvatarId(avId, 'setCountryClubInteriorZone', [countryClubZone])
+                    self.sendUpdateToAvatarId(avId, 'setCountryClubInteriorZone', [
+                     countryClubZone])
                     self.clearFullNow(seatIndex)
 
         else:
@@ -54,7 +53,8 @@ class DistributedCogKartAI(DistributedElevatorExtAI.DistributedElevatorExtAI):
             countryClubZone = self.bldg.createCountryClub(self.countryClubId, avIdList)
             for avId in avIdList:
                 if avId:
-                    self.sendUpdateToAvatarId(avId, 'setCountryClubInteriorZoneForce', [countryClubZone])
+                    self.sendUpdateToAvatarId(avId, 'setCountryClubInteriorZoneForce', [
+                     countryClubZone])
 
     def getCountryClubId(self):
         return self.countryClubId

@@ -8,16 +8,18 @@ from toontown.toonbase import ToontownGlobals
 import CogDisguiseGlobals
 from toontown.building import FADoorCodes
 from toontown.building import DoorTypes
+from toontown.toonbase import ToontownAccessAI
 
 class DistributedCogHQDoorAI(DistributedDoorAI.DistributedDoorAI):
     notify = DirectNotifyGlobal.directNotify.newCategory('DistributedCogHQDoorAI')
 
-    def __init__(self, air, blockNumber, doorType, destinationZone, doorIndex = 0, lockValue = FADoorCodes.SB_DISGUISE_INCOMPLETE, swing = 3):
+    def __init__(self, air, blockNumber, doorType, destinationZone, doorIndex=0, lockValue=FADoorCodes.SB_DISGUISE_INCOMPLETE, swing=3):
         DistributedDoorAI.DistributedDoorAI.__init__(self, air, blockNumber, doorType, doorIndex, lockValue, swing)
         self.destinationZone = destinationZone
 
     def requestEnter(self):
         avatarID = self.air.getAvatarIdFromSender()
+        allowed = 0
         dept = ToontownGlobals.cogHQZoneId2deptIndex(self.destinationZone)
         av = self.air.doId2do.get(avatarID)
         if av:
@@ -29,11 +31,17 @@ class DistributedCogHQDoorAI(DistributedDoorAI.DistributedDoorAI):
                     allowed = 0
             else:
                 allowed = 1
-            if not allowed:
-                self.sendReject(avatarID, self.isLockedDoor())
-            else:
-                self.enqueueAvatarIdEnter(avatarID)
-                self.sendUpdateToAvatarId(avatarID, 'setOtherZoneIdAndDoId', [self.destinationZone, self.otherDoor.getDoId()])
+
+        if not ToontownAccessAI.canAccess(avatarID, self.zoneId, 'DistributedCogHQDoorAI.requestEnter'):
+            allowed = 0
+
+        if not allowed:
+            self.sendReject(avatarID, self.isLockedDoor())
+        else:
+            self.enqueueAvatarIdEnter(avatarID)
+            self.sendUpdateToAvatarId(avatarID, 'setOtherZoneIdAndDoId', [
+                self.destinationZone,
+                self.otherDoor.getDoId()])
 
     def requestExit(self):
         avatarID = self.air.getAvatarIdFromSender()

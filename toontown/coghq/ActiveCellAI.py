@@ -10,7 +10,7 @@ class ActiveCellAI(DistributedEntityAI.DistributedEntityAI):
         self.occupantIds = []
         DistributedEntityAI.DistributedEntityAI.__init__(self, level, entId)
 
-        def setGrid(gridId = self.gridId, self = self):
+        def setGrid(gridId=self.gridId, self=self):
             self.grid = self.level.entities.get(gridId, None)
             if self.grid:
                 self.grid.addActiveCell(self)
@@ -32,16 +32,16 @@ class ActiveCellAI(DistributedEntityAI.DistributedEntityAI):
     def getState(self):
         return self.state
 
-    def b_setState(self, state, objId = None):
+    def b_setState(self, state, objId=None):
         self.setState(state, objId)
         self.d_setState(state, objId)
 
-    def d_setState(self, state, objId = None):
+    def d_setState(self, state, objId=None):
         if not objId:
             objId = 0
         self.sendUpdate('setState', [state, objId])
 
-    def setState(self, state, objId = None):
+    def setState(self, state, objId=None):
         self.state = state
         if state:
             self.occupantIds.append(objId)

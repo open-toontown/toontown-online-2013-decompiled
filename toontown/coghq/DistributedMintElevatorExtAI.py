@@ -10,7 +10,7 @@ import CogDisguiseGlobals
 
 class DistributedMintElevatorExtAI(DistributedElevatorExtAI.DistributedElevatorExtAI):
 
-    def __init__(self, air, bldg, mintId, antiShuffle = 0, minLaff = 0):
+    def __init__(self, air, bldg, mintId, antiShuffle=0, minLaff=0):
         DistributedElevatorExtAI.DistributedElevatorExtAI.__init__(self, air, bldg, antiShuffle=antiShuffle, minLaff=minLaff)
         self.mintId = mintId
         self.cogDept = ToontownGlobals.cogHQZoneId2deptIndex(self.mintId)
@@ -37,7 +37,8 @@ class DistributedMintElevatorExtAI(DistributedElevatorExtAI.DistributedElevatorE
             for seatIndex in range(len(self.seats)):
                 avId = self.seats[seatIndex]
                 if avId:
-                    self.sendUpdateToAvatarId(avId, 'setMintInteriorZone', [mintZone])
+                    self.sendUpdateToAvatarId(avId, 'setMintInteriorZone', [
+                     mintZone])
                     self.clearFullNow(seatIndex)
 
         else:
@@ -54,4 +55,5 @@ class DistributedMintElevatorExtAI(DistributedElevatorExtAI.DistributedElevatorE
             mintZone = self.bldg.createMint(self.mintId, avIdList)
             for avId in avIdList:
                 if avId:
-                    self.sendUpdateToAvatarId(avId, 'setMintInteriorZoneForce', [mintZone])
+                    self.sendUpdateToAvatarId(avId, 'setMintInteriorZoneForce', [
+                     mintZone])
