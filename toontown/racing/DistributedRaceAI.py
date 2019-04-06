@@ -1,7 +1,7 @@
 from direct.distributed import DistributedObjectAI
 from direct.directnotify import DirectNotifyGlobal
 from toontown.toonbase import ToontownGlobals
-from otp.otpbase.PythonUtil import nonRepeatingRandomList
+from direct.showbase.PythonUtil import nonRepeatingRandomList
 import DistributedGagAI, DistributedProjectileAI
 from direct.task import Task
 import random, time, Racer, RaceGlobals
